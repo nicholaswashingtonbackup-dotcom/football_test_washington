@@ -1,0 +1,6 @@
+{
+  "name": "Stratos Football Analytics Engine",
+  "description": "An elite, data-driven Football (Soccer) Analytics and Prediction Engine utilizing a 5-Phase Analysis Framework to model match outcomes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
