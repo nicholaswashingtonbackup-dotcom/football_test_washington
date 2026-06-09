@@ -80,6 +80,13 @@ export interface MarketEdge {
   recommendation: string;
 }
 
+export interface PreMatchIntelligence {
+  formationsShift: string;
+  injuriesAbsences: string;
+  fatigueAlerts: string;
+  impactSummary: string;
+}
+
 export interface MatchPrediction {
   matchInfo: MatchInfo;
   phase1SquadContext: Phase1SquadContext;
@@ -88,4 +95,5 @@ export interface MatchPrediction {
   phase4HistoryMotivation: Phase4HistoryMotivation;
   phase5Engine: Phase5Engine;
   marketEdge: MarketEdge;
+  preMatchIntelligence: PreMatchIntelligence;
 }

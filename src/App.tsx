@@ -52,6 +52,11 @@ export default function App() {
   const [isOfflineMock, setIsOfflineMock] = useState(false);
   const [apiWarning, setApiWarning] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'squadTactics' | 'environmentHistory' | 'simulationDetails'>('dashboard');
+  
+  // Dynamic Football Feed state
+  const [footballCategory, setFootballCategory] = useState<'mens' | 'womens'>('mens');
+  const [fixtures, setFixtures] = useState<any[]>([]);
+  const [systemDate, setSystemDate] = useState<string>('');
 
   // Loading process visual simulation logs
   const loadingLogs = [
@@ -111,10 +116,28 @@ export default function App() {
     }
   };
 
-  // Run initial USA vs Germany simulation on mount to let user see "test Afterwards USA vs Germany" natively
+  // Synchronize fixtures based on Category selection
   useEffect(() => {
-    handlePredict("USA", "Germany");
-  }, []);
+    const fetchFixtures = async () => {
+      try {
+        const res = await fetch(`/api/fixtures?category=${footballCategory}`);
+        if (res.ok) {
+          const data = await res.json();
+          setFixtures(data.fixtures);
+          setSystemDate(data.date);
+          
+          if (data.fixtures && data.fixtures.length > 0) {
+            // Predict the primary featured match on category change
+            const featuredMatch = data.fixtures.find((f: any) => f.featured) || data.fixtures[0];
+            handlePredict(featuredMatch.home, featuredMatch.away);
+          }
+        }
+      } catch (err) {
+        console.error("Stratos Error: Failed to fetch dynamic real-time fixtures feed:", err);
+      }
+    };
+    fetchFixtures();
+  }, [footballCategory]);
 
   // Weather icon picker
   const renderWeatherIcon = (icon: string) => {
@@ -152,7 +175,7 @@ export default function App() {
             </div>
             <div className="text-right">
               <Calendar className="w-3.5 h-3.5 inline mr-1 text-slate-500" />
-              <span>June 7, 2026 // World Cup Camp</span>
+              <span>{systemDate || "Scheduled Today"} // Intel Feed Live</span>
             </div>
           </div>
         </div>
@@ -184,16 +207,40 @@ export default function App() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8" id="interaction-panel">
           
           {/* Preset Selector Panel */}
-          <div className="lg:col-span-5 bg-slate-950 border border-slate-900 rounded-xl p-5 space-y-5" id="presets-panel">
+          <div className="lg:col-span-4 bg-slate-950 border border-slate-900 rounded-xl p-5 space-y-5" id="presets-panel">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase font-mono">1. Select Match Case</h3>
               {isOfflineMock && (
                 <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-mono">Offline Simulation</span>
               )}
             </div>
+
+            {/* Gender/Category Filter Toggle */}
+            <div className="flex bg-slate-900/60 p-1 rounded-lg border border-slate-900" id="category-filter-toggle">
+              <button
+                onClick={() => setFootballCategory('mens')}
+                className={`flex-1 py-1.5 text-xs font-mono font-semibold rounded transition-all text-center ${
+                  footballCategory === 'mens'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md font-bold'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Men's Slates
+              </button>
+              <button
+                onClick={() => setFootballCategory('womens')}
+                className={`flex-1 py-1.5 text-xs font-mono font-semibold rounded transition-all text-center ${
+                  footballCategory === 'womens'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md font-bold'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Women's Slates
+              </button>
+            </div>
             
-            <div className="space-y-3">
-              {PRESET_MATCHES.map((matchObj, idx) => {
+            <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+              {fixtures.map((matchObj, idx) => {
                 const isActive = prediction && 
                   prediction.matchInfo.homeTeam?.toLowerCase().includes(matchObj.home.toLowerCase()) && 
                   prediction.matchInfo.awayTeam?.toLowerCase().includes(matchObj.away.toLowerCase());
@@ -210,16 +257,16 @@ export default function App() {
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     <div className="space-y-1 flex-1">
-                      <div className="flex items-center gap-2 font-semibold text-slate-200">
+                      <div className="flex items-center gap-2 font-semibold text-slate-200 text-xs sm:text-sm">
                         <span>{matchObj.home}</span>
                         <span className="text-xs font-mono font-normal text-slate-600">vs</span>
                         <span>{matchObj.away}</span>
                         {matchObj.featured && (
-                          <span className="text-[9px] bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-1.5 py-0.2 rounded uppercase tracking-widest font-mono font-semibold">Test Item</span>
+                          <span className="text-[9px] bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-1.5 py-0.2 rounded uppercase tracking-widest font-mono font-semibold">Today's Pick</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-[11px] text-slate-500 font-mono">
-                        <span>{matchObj.venue}</span>
+                      <div className="flex items-center gap-3 text-[10px] text-slate-500 font-mono">
+                        <span className="truncate max-w-[120px]">{matchObj.venue}</span>
                         <span>•</span>
                         <span>{matchObj.date}</span>
                       </div>
@@ -274,7 +321,7 @@ export default function App() {
           </div>
 
           {/* Core Prediction Processing / Visualization Screen */}
-          <div className="lg:col-span-7" id="results-and-loading-panel">
+          <div className="lg:col-span-8" id="results-and-loading-panel">
             
             {/* Loading Stage Terminal */}
             {loading && (
@@ -354,7 +401,8 @@ export default function App() {
 
             {/* Prediction Display Dashboard */}
             {prediction && !loading && !errorMessage && (
-              <div className="bg-slate-950 border border-slate-900 rounded-xl overflow-hidden flex flex-col justify-between min-h-[460px]" id="prediction-dashboard">
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start" id="dashboard-layout-group">
+                <div className="xl:col-span-8 bg-slate-950 border border-slate-900 rounded-xl overflow-hidden flex flex-col justify-between min-h-[460px]" id="prediction-dashboard">
                 
                 {/* Simulated Pitch Pitch-Title Section */}
                 <div className="bg-slate-900/40 px-5 py-4 border-b border-slate-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" id="dashboard-header-match">
@@ -992,7 +1040,66 @@ export default function App() {
                 </div>
 
               </div>
-            )}
+
+              {/* Pre-Match Intelligence Feed Panel */}
+              <div className="xl:col-span-4 bg-slate-950 border border-slate-900 rounded-xl p-5 space-y-4 flex flex-col justify-between h-full" id="pre-match-intelligence-feed">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b border-slate-900 pb-3">
+                    <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
+                    <h4 className="text-xs uppercase font-bold tracking-wider font-mono text-slate-200">
+                      Pre-Match Intelligence Feed
+                    </h4>
+                  </div>
+
+                  <div className="space-y-3.5 text-xs">
+                    {/* Formations Shift */}
+                    <div className="space-y-1.5 p-3 rounded bg-slate-900/40 border border-slate-900/60">
+                      <div className="flex items-center gap-1.5 font-semibold text-emerald-400 font-mono text-[10px] uppercase">
+                        <span>📋</span>
+                        <span>1. Formations & Tactics Shift</span>
+                      </div>
+                      <p className="text-slate-300 text-[11px] leading-relaxed">
+                        {prediction.preMatchIntelligence?.formationsShift || "No significant late tactical changes reported."}
+                      </p>
+                    </div>
+
+                    {/* Injuries & Absences */}
+                    <div className="space-y-1.5 p-3 rounded bg-slate-900/40 border border-slate-900/60">
+                      <div className="flex items-center gap-1.5 font-semibold text-rose-450 font-mono text-[10px] uppercase">
+                        <span>🤕</span>
+                        <span>2. Late Injuries & Absences</span>
+                      </div>
+                      <p className="text-slate-300 text-[11px] leading-relaxed">
+                        {prediction.preMatchIntelligence?.injuriesAbsences || "Both rosters show standard fitness parameters."}
+                      </p>
+                    </div>
+
+                    {/* Fatigue Alerts */}
+                    <div className="space-y-1.5 p-3 rounded bg-slate-900/40 border border-slate-900/60">
+                      <div className="flex items-center gap-1.5 font-semibold text-amber-450 font-mono text-[10px] uppercase">
+                        <span>🔋</span>
+                        <span>3. Roster Fatigue Alerts</span>
+                      </div>
+                      <p className="text-slate-300 text-[11px] leading-relaxed">
+                        {prediction.preMatchIntelligence?.fatigueAlerts || "Roster conditioning values are fully normalized."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Impact Summary Section */}
+                <div className="bg-gradient-to-r from-emerald-950/25 to-teal-950/25 border border-emerald-950 p-3.5 rounded-lg space-y-1 mt-4">
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-emerald-400 block font-semibold">
+                    Simulation Impact Summary
+                  </span>
+                  <p className="text-slate-200 text-xs font-semibold leading-relaxed">
+                    {prediction.preMatchIntelligence?.impactSummary || "No baseline probability deviations computed."}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          )}
 
           </div>
         </div>

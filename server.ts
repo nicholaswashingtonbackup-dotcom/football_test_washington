@@ -144,6 +144,16 @@ const soccerPredictionSchema = {
       },
       required: ["oddsHomeMarket", "oddsDrawMarket", "oddsAwayMarket", "oddsHomeModel", "oddsDrawModel", "oddsAwayModel", "edgeHome", "edgeDraw", "edgeAway", "analyticalEdgeExplanation", "recommendation"],
     },
+    preMatchIntelligence: {
+      type: Type.OBJECT,
+      properties: {
+        formationsShift: { type: Type.STRING },
+        injuriesAbsences: { type: Type.STRING },
+        fatigueAlerts: { type: Type.STRING },
+        impactSummary: { type: Type.STRING },
+      },
+      required: ["formationsShift", "injuriesAbsences", "fatigueAlerts", "impactSummary"],
+    },
   },
   required: [
     "matchInfo",
@@ -152,7 +162,8 @@ const soccerPredictionSchema = {
     "phase3Environment",
     "phase4HistoryMotivation",
     "phase5Engine",
-    "marketEdge"
+    "marketEdge",
+    "preMatchIntelligence"
   ]
 };
 
@@ -243,6 +254,106 @@ function getMockPrediction(home: string, away: string): any {
         edgeAway: -11.0,
         analyticalEdgeExplanation: "The public market heavily overvalues Germany's name brand, creating a massive 10.0% overlay on USA Moneyline. Current odds (+222) imply only 31% probability, whereas the engine calculates 41% due to fatigue indicators.",
         recommendation: "USA Draw No Bet (DNB) at +135 to capitalize on the overlay with an insurance layer; Over 2.5 Goals is secondary."
+      },
+      preMatchIntelligence: {
+        formationsShift: "Confirmed shift to a low-block 4-5-1 to absorb Germany's possession waves.",
+        injuriesAbsences: "Starting GK Matt Turner failed late fitness test. Ethan Horvath starts in goal.",
+        fatigueAlerts: "Midfield duo Weston McKennie and Tyler Adams played consecutive 90-minute shifts over past 6 days.",
+        impactSummary: "Loss of Matt Turner and midfield fatigue shifts USA's baseline win probability downward by -3.8%."
+      }
+    };
+  }
+
+  const isUSAWvsGERW = (home.toLowerCase().includes("usa women") && away.toLowerCase().includes("germany women")) ||
+                       (home.toLowerCase().includes("germany women") && away.toLowerCase().includes("usa women"));
+
+  if (isUSAWvsGERW) {
+    return {
+      matchInfo: {
+        homeTeam: "USA Women",
+        awayTeam: "Germany Women",
+        venue: "Soldier Field, Chicago, IL",
+        surface: "Natural Grass (Meticulously groomed for women's series)",
+        date: "Today"
+      },
+      phase1SquadContext: {
+        homeFatigueIndex: "LOW",
+        awayFatigueIndex: "MEDIUM",
+        homeFatigueDescription: "USWNT squad fully rotated in previous camp match. Fresh starting XI.",
+        awayFatigueDescription: "German core played 180 mins over intense European travel window last week.",
+        missingPlayersHome: ["Naomi Girma (Minor quad tightness - Precautionary rest)"],
+        missingPlayersAway: ["Alexandra Popp (Knee niggle - Staged bench entry)"],
+        squadDynamicsAnalysis: "Extremely high morale inside the USWNT camp. Germany experiencing tactical transition period under interim management."
+      },
+      phase2Tactics: {
+        homeFormation: "4-2-3-1",
+        awayFormation: "4-3-3",
+        homeTacticalStyle: "High-intensity wing overloads and defensive transition press",
+        awayTacticalStyle: "Direct vertical build-up targeting central pivot play",
+        tacticalMatchupAnalysis: "USA's intense athletic press out of possession will restrict the service channels to Germany's forward line, creating turnover opportunities high up the pitch.",
+        homePpda: 8.1,
+        awayPpda: 10.4,
+        setPieceDominance: "USA Women Favored (Lindsey Horan aerial dominance)"
+      },
+      phase3Environment: {
+        weatherIcon: "sun",
+        weatherDetails: "Pleasant afternoon clear skies, 70°F, 50% Humidity. Fast grass conditions.",
+        altitudeMeters: 179,
+        travelPenaltyHome: "None",
+        travelPenaltyAway: "Medium (Transatlantic hop)",
+        refereeName: "Katia García",
+        refereeMetrics: "3.9 Yellows/Game",
+        homeAdvantageMultiplier: 1.10,
+        environmentalAnalysis: "Perfect footballing weather. Dry pitch maximizes rapid passing maneuvers."
+      },
+      phase4HistoryMotivation: {
+        h2hHistory: [
+          "2024 Olympic Semifinal: USA Women 1 - 0 Germany Women",
+          "2024 Olympic Group: USA Women 4 - 1 Germany Women",
+          "2022 Friendly: USA Women 2 - 1 Germany Women"
+        ],
+        motivationContextHome: "Consolidate elite form and test tactical integration in front of a home crowd.",
+        motivationContextAway: "Prove tactical progression against the reigning Olympic Champions.",
+        motivationAnalysis: "The historic rivalry ensures high intensity, but USA is favored psychologically due to recent Olympic dominance.",
+        recentFormHome: ["W", "W", "W", "W", "D"],
+        recentFormAway: ["W", "L", "W", "D", "W"]
+      },
+      phase5Engine: {
+        baselineXgHome: 1.74,
+        baselineXgAway: 1.22,
+        adjustedXgHome: 1.95,
+        adjustedXgAway: 1.14,
+        explanationOfAdjustments: "USWNT is boosted by superior athletic freshness and recent matchup dominance, while Germany Women has minor travel/fatigue discount.",
+        winProbabilityHome: 58,
+        winProbabilityDraw: 22,
+        winProbabilityAway: 20,
+        scorelineProjections: [
+          { score: "2 - 1", probability: 16.4 },
+          { score: "1 - 1", probability: 11.2 },
+          { score: "2 - 0", probability: 10.8 },
+          { score: "3 - 1", probability: 8.9 },
+          { score: "1 - 2", probability: 7.2 }
+        ],
+        monteCarloConfidence: "USA Women wins 58.0% ± 4.2% across 10,000 simulations"
+      },
+      marketEdge: {
+        oddsHomeMarket: "-125 (Decimal 1.80)",
+        oddsDrawMarket: "+260 (Decimal 3.60)",
+        oddsAwayMarket: "+310 (Decimal 4.10)",
+        oddsHomeModel: "-138 (Decimal 1.72)",
+        oddsDrawModel: "+255 (Decimal 3.55)",
+        oddsAwayModel: "+400 (Decimal 5.00)",
+        edgeHome: 5.5,
+        edgeDraw: 0.5,
+        edgeAway: -6.0,
+        analyticalEdgeExplanation: "The model identifies clean value on USA Women Moneyline. The market underrecognizes the USWNT rotation advantages and Germany's traveling weariness.",
+        recommendation: "USA Women Moneyline is highly recommended at -125."
+      },
+      preMatchIntelligence: {
+        formationsShift: "Tactical pivot to high unilateral wing-press in 4-2-3-1.",
+        injuriesAbsences: "Starting center-back Naomi Girma rested due to mild quad tightness.",
+        fatigueAlerts: "German core played 180 mins over intense European travel window last week.",
+        impactSummary: "Rested USWNT wingers gain an estimated +4.1% efficiency shift against tired German fullbacks."
       }
     };
   }
@@ -263,14 +374,14 @@ function getMockPrediction(home: string, away: string): any {
       awayFatigueDescription: "Key midfielders showing minor fatigue indicators due to fixture congestion.",
       missingPlayersHome: ["Primary winger suspended due to yellow accumulation"],
       missingPlayersAway: ["Main central defender doubts with hamstring stiffness"],
-      squadDynamicsAnalysis: "Home side moral is exceptionally stable following a coaching shift; Away side dressing room reports minor factional tension."
+      squadDynamicsAnalysis: "Home side morale is exceptionally stable following a coaching shift; Away side dressing room reports minor factional tension."
     },
     phase2Tactics: {
       homeFormation: "4-2-3-1",
       awayFormation: "4-3-3",
       homeTacticalStyle: "Compact low block with rapid wing counter-attacks",
-      awayTacticalStyle: "High possession width targeting overlapping fulbacks",
-      tacticalMatchupAnalysis: "Home's double-pivot will shield the back four effectively against Away's wide overloads. Counters will target vacated full-back spaces.",
+      awayTacticalStyle: "High possession width targeting overlapping fullbacks",
+      tacticalMatchupAnalysis: "Home's double-pivot will shield the back four effectively against Away's wide overloads. Counters will target vacated fullback spaces.",
       homePpda: 11.5,
       awayPpda: 9.2,
       setPieceDominance: "Neutral expectation across both defensive and offensive sets"
@@ -327,9 +438,49 @@ function getMockPrediction(home: string, away: string): any {
       edgeAway: -1.6,
       analyticalEdgeExplanation: "The odds reflect a close symmetry. Model and market are in near alignment, providing minor margins of value.",
       recommendation: "Draw No Bet (DNB) for the Home side or Under 2.5 Goals represents the best defensive overlay."
+    },
+    preMatchIntelligence: {
+      formationsShift: `Tactical reports suggest a potential switch to a defensive 4-5-1 low-block by ${home} to mitigate ${away}'s transitional pace.`,
+      injuriesAbsences: `Late tracking reveals ${away}'s starting central midfielder failed a fitness test due to localized muscle fatigue.`,
+      fatigueAlerts: `${home}'s double-pivot accumulated substantial travel minutes across their respective league cycles over the past week.`,
+      impactSummary: `Compounded travel indices and tactical adjustments reduce ${home}'s overall baseline win probability by -2.9%.`
     }
   };
 }
+
+// Fixtures route with dynamic date generation for current calendar day
+app.get("/api/fixtures", (req, res) => {
+  const category = (req.query.category as string) || "mens";
+  const today = new Date();
+  
+  // Format dynamically based on runtime date
+  const formattedToday = today.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  });
+
+  const mensFixtures = [
+    { home: "USA", away: "Germany", venue: "Soldier Field, Chicago", date: formattedToday, featured: true },
+    { home: "Brazil", away: "Egypt", venue: "Cairo International Stadium", date: formattedToday, featured: false },
+    { home: "Portugal", away: "Chile", venue: "Estádio da Luz, Lisbon", date: formattedToday, featured: false },
+    { home: "Argentina", away: "Honduras", venue: "Hard Rock Stadium, Miami", date: formattedToday, featured: false },
+    { home: "Turkey", away: "Venezuela", venue: "Chase Stadium, Ft. Lauderdale", date: formattedToday, featured: false },
+    { home: "Spain", away: "Italy", venue: "San Siro, Milan", date: formattedToday, featured: false },
+  ];
+
+  const womensFixtures = [
+    { home: "USA Women", away: "Germany Women", venue: "Soldier Field, Chicago", date: formattedToday, featured: true },
+    { home: "Sweden Women", away: "England Women", venue: "Friends Arena, Stockholm", date: formattedToday, featured: false },
+    { home: "Spain Women", away: "France Women", venue: "Camp Nou, Barcelona", date: formattedToday, featured: false },
+    { home: "Australia Women", away: "Japan Women", venue: "Stadium Australia, Sydney", date: formattedToday, featured: false },
+    { home: "Brazil Women", away: "Canada Women", venue: "Maracanã, Rio de Janeiro", date: formattedToday, featured: false },
+    { home: "Netherlands Women", away: "Norway Women", venue: "Johan Cruyff ArenA, Amsterdam", date: formattedToday, featured: false },
+  ];
+
+  const fixtures = category === "womens" ? womensFixtures : mensFixtures;
+  res.json({ fixtures, date: formattedToday });
+});
 
 // Prediction Route with API fallback
 app.post("/api/predict", async (req, res) => {
