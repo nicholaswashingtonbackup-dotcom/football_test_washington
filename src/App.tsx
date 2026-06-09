@@ -28,7 +28,8 @@ import {
   Award,
   CircleDot,
   Info,
-  ShieldAlert
+  ShieldAlert,
+  Globe
 } from 'lucide-react';
 import { MatchPrediction } from './types';
 
@@ -51,6 +52,12 @@ export default function App() {
   const [fixtures, setFixtures] = useState<any[]>([]);
   const [systemDate, setSystemDate] = useState<string>('');
 
+  // World Cup 2026 Venue environmental modifier states
+  const [selectedVenue, setSelectedVenue] = useState<string>('Soldier Field, Chicago, IL');
+  const [kickoffTime, setKickoffTime] = useState<string>('15:00'); // Kickoff pre 6:00 PM local
+  const [altitudeCampHome, setAltitudeCampHome] = useState<boolean>(false);
+  const [altitudeCampAway, setAltitudeCampAway] = useState<boolean>(false);
+
   // 9-Phase Sequential Loading Logs for STRATOS v2 Engine calibration
   const loadingLogs = [
     "Phase 1: Establishing Team Power Ratings, historical baselines, and custom season long xG trends...",
@@ -65,7 +72,14 @@ export default function App() {
   ];
 
   // Trigger prediction model
-  const handlePredict = async (home: string, away: string) => {
+  const handlePredict = async (
+    home: string, 
+    away: string,
+    venueOverride?: string,
+    kickoffOverride?: string,
+    altHomeOverride?: boolean,
+    altAwayOverride?: boolean
+  ) => {
     if (!home.trim() || !away.trim()) return;
     setLoading(true);
     setLoadingStep(0);
@@ -83,11 +97,23 @@ export default function App() {
       });
     }, 400);
 
+    const matchVenue = venueOverride !== undefined ? venueOverride : selectedVenue;
+    const kickoff = kickoffOverride !== undefined ? kickoffOverride : kickoffTime;
+    const altHome = altHomeOverride !== undefined ? altHomeOverride : altitudeCampHome;
+    const altAway = altAwayOverride !== undefined ? altAwayOverride : altitudeCampAway;
+
     try {
       const res = await fetch('/api/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ homeTeam: home, awayTeam: away }),
+        body: JSON.stringify({ 
+          homeTeam: home, 
+          awayTeam: away,
+          venue: matchVenue,
+          kickoffTime: kickoff,
+          altitudeCampHome: altHome,
+          altitudeCampAway: altAway
+        }),
       });
 
       if (!res.ok) {
@@ -126,7 +152,8 @@ export default function App() {
           if (data.fixtures && data.fixtures.length > 0) {
             // Predict the primary featured match on category change
             const featuredMatch = data.fixtures.find((f: any) => f.featured) || data.fixtures[0];
-            handlePredict(featuredMatch.home, featuredMatch.away);
+            setSelectedVenue(featuredMatch.venue);
+            handlePredict(featuredMatch.home, featuredMatch.away, featuredMatch.venue);
           }
         }
       } catch (err) {
@@ -245,7 +272,10 @@ export default function App() {
                   <button
                     key={idx}
                     id={`preset-btn-${idx}`}
-                    onClick={() => handlePredict(matchObj.home, matchObj.away)}
+                    onClick={() => {
+                      setSelectedVenue(matchObj.venue);
+                      handlePredict(matchObj.home, matchObj.away, matchObj.venue);
+                    }}
                     disabled={loading}
                     className={`w-full text-left p-3 rounded-lg border transition-all flex items-center justify-between gap-3 ${
                       isActive 
@@ -276,9 +306,79 @@ export default function App() {
               })}
             </div>
 
+            {/* World Cup 2026 Environmental Calibration */}
+            <div className="pt-4 border-t border-slate-900/60 space-y-3" id="env-calibrator">
+              <h4 className="text-xs font-mono text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5 text-emerald-400" /> 
+                2. Calibrate Environment
+              </h4>
+
+              {/* Host City Venue Selector */}
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Host Venue City</label>
+                <select
+                  value={selectedVenue}
+                  onChange={(e) => setSelectedVenue(e.target.value)}
+                  className="w-full bg-slate-905 border border-slate-900 hover:border-slate-800 focus:border-slate-750 text-slate-350 bg-slate-900 rounded px-2.5 py-1.5 text-xs font-mono font-semibold select-none focus:outline-none transition-colors"
+                >
+                  <option value="Soldier Field, Chicago, IL">Chicago (Soldier Field) [Natural Grass]</option>
+                  <option value="Estadio Azteca, Mexico City">Mexico City (Estadio Azteca) [2,240m Altitude]</option>
+                  <option value="Estadio Akron, Guadalajara">Guadalajara (Estadio Akron) [1,566m Altitude]</option>
+                  <option value="Hard Rock Stadium, Miami">Miami (Hard Rock Stadium) [Open-air, Heat Alert]</option>
+                  <option value="NRG Stadium, Houston">Houston (NRG Stadium) [Open-air, Heat Alert]</option>
+                  <option value="Arrowhead Stadium, Kansas City">Kansas City (Arrowhead) [Open-air, Heat Alert]</option>
+                  <option value="Estadio BBVA, Monterrey">Monterrey (Estadio BBVA) [Open-air, Heat Alert]</option>
+                  <option value="AT&T Stadium, Dallas">Dallas (AT&T Stadium) [Indoor, Climate Controlled]</option>
+                  <option value="Mercedes-Benz Stadium, Atlanta">Atlanta (Mercedes-Benz) [Indoor, Climate Controlled]</option>
+                </select>
+              </div>
+
+              {/* Kickoff / Matchday Timing Selector */}
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Scheduled Kickoff local time</label>
+                <select
+                  value={kickoffTime}
+                  onChange={(e) => setKickoffTime(e.target.value)}
+                  className="w-full border border-slate-900 hover:border-slate-800 focus:border-slate-755 text-slate-350 bg-slate-900 rounded px-2.5 py-1.5 text-xs font-mono font-semibold select-none focus:outline-none transition-colors"
+                >
+                  <option value="15:00">Before 6:00 PM (3:00 PM) [Triggers Peak Summer Heat Penalties]</option>
+                  <option value="20:00">After 6:00 PM (8:00 PM) [Bypasses Summer Heat Penalties]</option>
+                </select>
+              </div>
+
+              {/* Altitude Preparatory Camp Switches */}
+              {(selectedVenue.toLowerCase().includes("mexico city") || selectedVenue.toLowerCase().includes("guadalajara") || selectedVenue.toLowerCase().includes("azteca") || selectedVenue.toLowerCase().includes("akron")) && (
+                <div className="bg-emerald-950/10 border border-emerald-500/20 rounded p-2.5 space-y-2 animate-fade-in" id="altitude-camp-controls">
+                  <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-bold block">
+                    ▲ ALTITUDE MODE CALIBRATED
+                  </span>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="flex items-center gap-2 text-xs text-slate-300 select-none cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={altitudeCampHome}
+                        onChange={(e) => setAltitudeCampHome(e.target.checked)}
+                        className="rounded border-slate-800 bg-slate-900 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-950 h-3.5 w-3.5 cursor-pointer accent-emerald-500"
+                      />
+                      <span className="font-mono text-[11px]">Home squad (&gt;14 days altitude camp prep)</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-xs text-slate-300 select-none cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={altitudeCampAway}
+                        onChange={(e) => setAltitudeCampAway(e.target.checked)}
+                        className="rounded border-slate-800 bg-slate-900 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-950 h-3.5 w-3.5 cursor-pointer accent-emerald-500"
+                      />
+                      <span className="font-mono text-[11px]">Away squad (&gt;14 days altitude camp prep)</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Manual Run Module */}
             <div className="pt-4 border-t border-slate-900/60" id="manual-inputs">
-              <h4 className="text-xs font-mono text-slate-500 uppercase tracking-widest mb-3">Or Execute Custom Simulation</h4>
+              <h4 className="text-xs font-mono text-slate-400 font-bold uppercase tracking-wider mb-3">3. Execute Custom Simulation</h4>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Home Team</label>
