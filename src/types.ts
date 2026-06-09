@@ -6,94 +6,143 @@ export interface MatchInfo {
   date: string;
 }
 
-export interface Phase1SquadContext {
-  homeFatigueIndex: string; // "LOW" | "MEDIUM" | "HIGH"
-  awayFatigueIndex: string;
-  homeFatigueDescription: string;
-  awayFatigueDescription: string;
-  missingPlayersHome: string[];
-  missingPlayersAway: string[];
-  squadDynamicsAnalysis: string;
+export interface MatchdayContext {
+  venueStatus: "Standard League Match (Mode A)" | "Tournament / Neutral Venue (Mode B)";
+  environmentalAdjustments: string; // Detail travel fatigue, climate, and crowd bias metrics
+  venueInfluenceIndex: string; // Detail travel distance, expected crowd takeover bias
 }
 
-export interface Phase2Tactics {
+export interface ExplainabilityLayer {
+  positiveDrivers: string[]; // e.g. ["+ Attacking xG Advantage [+11%]", "+ Tactical Formation Matchup [+6%]"]
+  negativeFactors: string[]; // e.g. ["- Squad Fatigue Index 82/100 [-5%]", "- Lineup Disruption [-4%]"]
+}
+
+export interface WhyNotEngine {
+  failureConditions: string[]; // list what could completely break this prediction
+}
+
+export interface Phase1PowerRating {
+  homeRating: number; // e.g. 84.5
+  awayRating: number; // e.g. 81.2
+  squadDepthValueHome: string;
+  squadDepthValueAway: string;
+  historicalXgTrendHome: number;
+  historicalXgTrendAway: number;
+  analysis: string;
+}
+
+export interface Phase2FormMomentum {
+  recentFormHome: string[]; // e.g. ["W", "D", "W", "L", "W"]
+  recentFormAway: string[];
+  pointsDivergenceHome: string;
+  pointsDivergenceAway: string;
+  cleanSheetTrendHome: string;
+  cleanSheetTrendAway: string;
+  analysis: string;
+}
+
+export interface Phase3TacticalEngine {
   homeFormation: string;
   awayFormation: string;
   homeTacticalStyle: string;
   awayTacticalStyle: string;
-  tacticalMatchupAnalysis: string;
   homePpda: number;
   awayPpda: number;
-  setPieceDominance: string;
+  formationStabilityScoreHome: number; // 0-100 indicating tactical stability
+  formationStabilityScoreAway: number; // 0-100 indicating tactical stability
+  transitionVulnerabilityHome: string;
+  transitionVulnerabilityAway: string;
+  matchupAnalysis: string;
 }
 
-export interface Phase3Environment {
-  weatherIcon: string; // "rain" | "sun" | "cloud" | "wind" | "snow"
+export interface Phase4VenueEnvironment {
   weatherDetails: string;
+  weatherIcon: string;
   altitudeMeters: number;
-  travelPenaltyHome: string;
-  travelPenaltyAway: string;
-  refereeName: string;
-  refereeMetrics: string;
-  homeAdvantageMultiplier: number;
+  travelDistancePenaltyHome: string;
+  travelDistancePenaltyAway: string;
+  pitchFrictionTurf: string;
+  homeAdvantageMagnitude: string;
+  crowdBiasExpected: string;
   environmentalAnalysis: string;
 }
 
-export interface Phase4HistoryMotivation {
-  h2hHistory: string[];
+export interface Phase5SquadFatigueManager {
+  fatigueScoreHome: number; // 0-100 (high = heavy congestion)
+  fatigueScoreAway: number; // 0-100 (high = heavy congestion)
+  congestionAnalysis: string;
+  managerExperienceHome: string; // Profile experience / stability
+  managerExperienceAway: string;
+  managerDecisionImpact: string; // Adjusts model uncertainty description
+}
+
+export interface Phase6PsychologicalEngine {
   motivationContextHome: string;
   motivationContextAway: string;
-  motivationAnalysis: string;
-  recentFormHome: string[]; // e.g. ["W", "D", "W", "L", "W"]
-  recentFormAway: string[];
+  derbyTensionLevel: string;
+  situationalStakes: string; // Group-stage math, elimination threat, or dead rubber
+  psychologicalEdge: string;
+  psychologicalAnalysis: string;
 }
 
-export interface ScorelineProjection {
-  score: string; // "2 - 1"
-  probability: number; // percent
+export interface Phase7MatchdayValidation {
+  expectedVsConfirmedHome: string;
+  expectedVsConfirmedAway: string;
+  lineupDisruptionScoreHome: number; // rating points drop (negative e.g. -4.5)
+  lineupDisruptionScoreAway: number;
+  confirmedTacticalShiftHome: string;
+  confirmedTacticalShiftAway: string;
+  suspensionsAndLateScrapes: string;
+  personnelDeductionAnalysis: string; // e.g., Top Scorer out = Attacking Rating drops 87->76, reducing xG
+  validationVerdict: string;
 }
 
-export interface Phase5Engine {
-  baselineXgHome: number;
-  baselineXgAway: number;
+export interface ScorelineCurve {
+  score: string;
+  probability: number;
+}
+
+export interface Phase8MonteCarlo {
   adjustedXgHome: number;
   adjustedXgAway: number;
-  explanationOfAdjustments: string;
-  winProbabilityHome: number; // e.g. 41
-  winProbabilityDraw: number; // e.g. 27
-  winProbabilityAway: number; // e.g. 32
-  scorelineProjections: ScorelineProjection[];
-  monteCarloConfidence: string;
+  winProbabilityHome: number;
+  winProbabilityDraw: number;
+  winProbabilityAway: number;
+  cleanSheetProbHome: number;
+  cleanSheetProbAway: number;
+  scorelineProjections: ScorelineCurve[];
+  predictionConfidenceScore: number; // 0-100%
+  predictionConfidenceExplanation: string;
+  simulationConfidenceInterval: string;
 }
 
-export interface MarketEdge {
-  oddsHomeMarket: string;
-  oddsDrawMarket: string;
-  oddsAwayMarket: string;
-  oddsHomeModel: string;
-  oddsDrawModel: string;
-  oddsAwayModel: string;
-  edgeHome: number; // percentage edge (positive or negative)
+export interface Phase9ValueBetDetection {
+  marketOddsHome: string;
+  marketOddsDraw: string;
+  marketOddsAway: string;
+  modelOddsHome: string;
+  modelOddsDraw: string;
+  modelOddsAway: string;
+  edgeHome: number;
   edgeDraw: number;
   edgeAway: number;
-  analyticalEdgeExplanation: string;
-  recommendation: string;
-}
-
-export interface PreMatchIntelligence {
-  formationsShift: string;
-  injuriesAbsences: string;
-  fatigueAlerts: string;
-  impactSummary: string;
+  edgeVerdict: "VALUE OPPORTUNITY" | "MARKET ALIGNED";
+  exactDiscrepancyExplanation: string;
+  valueRecommendation: string;
 }
 
 export interface MatchPrediction {
   matchInfo: MatchInfo;
-  phase1SquadContext: Phase1SquadContext;
-  phase2Tactics: Phase2Tactics;
-  phase3Environment: Phase3Environment;
-  phase4HistoryMotivation: Phase4HistoryMotivation;
-  phase5Engine: Phase5Engine;
-  marketEdge: MarketEdge;
-  preMatchIntelligence: PreMatchIntelligence;
+  matchdayContext: MatchdayContext;
+  explainabilityLayer: ExplainabilityLayer;
+  whyNotEngine: WhyNotEngine;
+  phase1PowerRating: Phase1PowerRating;
+  phase2FormMomentum: Phase2FormMomentum;
+  phase3TacticalEngine: Phase3TacticalEngine;
+  phase4VenueEnvironment: Phase4VenueEnvironment;
+  phase5SquadFatigueManager: Phase5SquadFatigueManager;
+  phase6PsychologicalEngine: Phase6PsychologicalEngine;
+  phase7MatchdayValidation: Phase7MatchdayValidation;
+  phase8MonteCarlo: Phase8MonteCarlo;
+  phase9ValueBetDetection: Phase9ValueBetDetection;
 }
