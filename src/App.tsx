@@ -32,6 +32,8 @@ import {
   Globe
 } from 'lucide-react';
 import { MatchPrediction } from './types';
+import ReactMarkdown from 'react-markdown';
+
 
 export default function App() {
   // Inputs
@@ -61,17 +63,18 @@ export default function App() {
   const [pitchMoisture, setPitchMoisture] = useState<string>('Standard');
   const [matchTemperature, setMatchTemperature] = useState<number>(22);
 
-  // 9-Phase Sequential Loading Logs for STRATOS v2 Engine calibration
+  // 10-Phase Sequential Loading Logs for STRATOS v2 Engine calibration
   const loadingLogs = [
-    "Phase 1: Establishing Team Power Ratings, historical baselines, and custom season long xG trends...",
-    "Phase 2: Calculating Form & Momentum, modeling short term expected vs actual points divergence over last 5 games...",
-    "Phase 3: Tactical Engine analysis, comparing pressing profiles (PPDA) and evaluating Formation Stability Scores...",
-    "Phase 4: Venue & Environment Index: Determining Venue States, crowd takeover factors, altitudes, and jet lag...",
-    "Phase 5: Squad Fatigue & Manager Impact: Commencing Fatigue Score (0-100) and manager profile stability calibrations...",
-    "Phase 6: Psychological Engine: Calibrating situational World Cup elimination stakes and regional pressures...",
-    "Phase 7: Matchday Validation Layer: Processing late confirmed lineup news, scratch reports, and xG decays...",
-    "Phase 8: Monte Carlo Simulation: Bootstrapping 10,000 algorithmic seed runs for exact Poisson-distributed score curves...",
-    "Phase 9: Value Bet Detection Overlay: Comparing STRATOS odds against bookmaker margins for market discrepancies..."
+    "Phase 1: Establishing ELO strength baselines, custom xG trends, and historical gender slates...",
+    "Phase 2: Tactical Matchup simulation: calibrating formations, passing velocities, PPDA, and block styles...",
+    "Phase 3: Auditing Squad Availability, injury personnel reducers, and depth sustainability indexes...",
+    "Phase 4: Calibrating Formation Stability, structural consistency quotients, and last 5 squads...",
+    "Phase 5: Calculating Travel Stress, flights, timezone crossing deltas, and fatigue decay...",
+    "Phase 6: Assessing Climate Adaptation, temperature coefficients, humidity decays, and adaptive profiles...",
+    "Phase 7: Scraping Stadium Intelligence, altitude meters, thin-air aerodynamic physics, and turf coefficients...",
+    "Phase 8: Weighting Tournament Psychology, situational stakes, and derby tension tension factors...",
+    "Phase 9: Bootstrapping Monte Carlo Simulations: 10,000 algorithmic seed runs for Poisson scorelines...",
+    "Phase 10: Isolating Value Bet Detection Overlay: comparing STRATOS odds against public bookmaker margins..."
   ];
 
   // Trigger prediction model
@@ -604,7 +607,7 @@ export default function App() {
                 <div className="bg-slate-900/40 px-5 py-4 border-b border-slate-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" id="dashboard-header-match">
                   <div className="space-y-1">
                     <div className="flex flex-wrap gap-2 items-center">
-                      <span className="text-[10px] uppercase font-mono tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-semibold border border-emerald-500/20">9-PHASE STRATOS CALIBRATION</span>
+                      <span className="text-[10px] uppercase font-mono tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-semibold border border-emerald-500/20">10-PHASE STRATOS CALIBRATION</span>
                       {prediction.simulationMode === 'tier1' ? (
                         <span className="text-[10px] uppercase font-mono tracking-widest text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-semibold border border-amber-500/20 flex items-center gap-1">
                           <CircleDot className="w-3 h-3 text-amber-400" />
@@ -636,7 +639,7 @@ export default function App() {
                       <p className="font-semibold text-amber-400 font-mono">Local Standalone Cache Enabled</p>
                       <p className="text-[11px] leading-relaxed text-amber-300/80">
                         {apiWarning ? `Gemini prediction service reported: "${apiWarning}".` : "Primary API credentials unconfigured in container."} 
-                        {" "}The engine has triggered precalculated 9-Phase simulations to preserve UI functionality and Poisson estimates.
+                        {" "}The engine has triggered precalculated 10-Phase simulations to preserve UI functionality and Poisson estimates.
                       </p>
                     </div>
                   </div>
@@ -646,54 +649,53 @@ export default function App() {
                 <div className="border-b border-slate-900 flex text-xs font-mono bg-slate-950 h-11" id="tabs-bar">
                   <button 
                     onClick={() => setActiveTab('dashboard')}
-                    className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'dashboard' ? 'border-emerald-500 text-emerald-450 bg-slate-900/20' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+                    className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'dashboard' ? 'border-emerald-500 text-emerald-400 bg-slate-900/20' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
                   >
-                    Sim / Value (P8-9)
+                    Sim & Value (P9-10)
                   </button>
                   <button 
                     onClick={() => setActiveTab('stratosV2')}
                     className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'stratosV2' ? 'border-amber-500 text-amber-500 bg-slate-900/20 font-semibold' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
                   >
-                    ★ STRATOS v2
+                    ★ EXECUTIVE OVERLAYS
                   </button>
                   <button 
                     onClick={() => setActiveTab('baselines')}
-                    className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'baselines' ? 'border-emerald-500 text-emerald-450 bg-slate-900/20' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+                    className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'baselines' ? 'border-emerald-500 text-emerald-400 bg-slate-900/20' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
                   >
-                    Base / Form (P1-2)
+                    Baselines & Matchups (P1-2)
                   </button>
                   <button 
                     onClick={() => setActiveTab('tactical')}
-                    className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'tactical' ? 'border-emerald-500 text-emerald-450 bg-slate-900/20' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+                    className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'tactical' ? 'border-emerald-500 text-emerald-400 bg-slate-900/20' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
                   >
-                    Tactics (P3)
+                    Squads & Stability (P3-4)
                   </button>
                   <button 
                     onClick={() => setActiveTab('modifiers')}
-                    className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'modifiers' ? 'border-emerald-500 text-emerald-450 bg-slate-900/20' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+                    className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'modifiers' ? 'border-emerald-500 text-emerald-400 bg-slate-900/20' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
                   >
-                    Context (P4-6)
+                    Travel & Climate (P5-6)
                   </button>
                   <button 
                     onClick={() => setActiveTab('validation')}
-                    className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'validation' ? 'border-emerald-500 text-emerald-450 bg-slate-900/20' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+                    className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'validation' ? 'border-emerald-500 text-emerald-400 bg-slate-900/20' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
                   >
-                    Lineups (P7)
+                    Stadium & Psychology (P7-8)
                   </button>
                 </div>
 
                 {/* Interchanging tab views */}
-                <div className="p-5 flex-1" id="tab-content-area">
-                  
-                  {/* ====== TAB 1: EXECUTIVE SUMMARY, SIMULATIONS, CONFIDENCE, AND VALUE ====== */}
+                <div className="p-5 flex-1" id="tab-content-area">                  {/* ====== TAB 1: EXECUTIVE SUMMARY, SIMULATIONS, CONFIDENCE, AND VALUE ====== */}
                   {activeTab === 'dashboard' && (
-                    <div className="space-y-6 animate-fade-in" id="dashboard-tab">
+                    <>
+                      <div className="space-y-6 animate-fade-in" id="dashboard-tab">
                       
                       {/* Venue Status Block */}
                       <div className="p-3.5 bg-slate-900/40 border border-slate-900 rounded-lg space-y-2">
                         <div className="flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">
-                          <CircleDot className="w-3.5 h-3.5" />
-                          <span>Venue Status Validation</span>
+                           <CircleDot className="w-3.5 h-3.5" />
+                           <span>Matchday Context Validation</span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
                           <div>
@@ -722,25 +724,25 @@ export default function App() {
                         <div className="grid grid-cols-3 gap-3 text-center">
                           <div className="bg-slate-900/60 border border-slate-900 rounded-lg p-3 relative overflow-hidden group">
                             <div className="text-[10px] font-mono uppercase text-slate-500 mb-1 truncate">Home Win ({prediction.matchInfo.homeTeam})</div>
-                            <div className="text-2xl font-bold tracking-tight text-emerald-40 w-full font-mono text-white">{prediction.phase8MonteCarlo.winProbabilityHome}%</div>
+                            <div className="text-2xl font-bold tracking-tight text-white font-mono">{prediction.phase9MonteCarlo.winProbabilityHome}%</div>
                             <div className="mt-2 w-full bg-slate-950 h-1.5 rounded-full overflow-hidden">
-                              <div className="bg-emerald-500 h-full" style={{ width: `${prediction.phase8MonteCarlo.winProbabilityHome}%` }} />
+                              <div className="bg-emerald-500 h-full" style={{ width: `${prediction.phase9MonteCarlo.winProbabilityHome}%` }} />
                             </div>
                           </div>
                           
                           <div className="bg-slate-900/60 border border-slate-900 rounded-lg p-3 relative overflow-hidden group">
                             <div className="text-[10px] font-mono uppercase text-slate-500 mb-1 truncate">🤝 Draw</div>
-                            <div className="text-2xl font-bold tracking-tight text-white font-mono">{prediction.phase8MonteCarlo.winProbabilityDraw}%</div>
+                            <div className="text-2xl font-bold tracking-tight text-white font-mono">{prediction.phase9MonteCarlo.winProbabilityDraw}%</div>
                             <div className="mt-2 w-full bg-slate-950 h-1.5 rounded-full overflow-hidden">
-                              <div className="bg-amber-550 h-full" style={{ width: `${prediction.phase8MonteCarlo.winProbabilityDraw}%` }} />
+                              <div className="bg-amber-500 h-full" style={{ width: `${prediction.phase9MonteCarlo.winProbabilityDraw}%` }} />
                             </div>
                           </div>
                           
                           <div className="bg-slate-900/60 border border-slate-900 rounded-lg p-3 relative overflow-hidden group">
                             <div className="text-[10px] font-mono uppercase text-slate-500 mb-1 truncate">Away Win ({prediction.matchInfo.awayTeam})</div>
-                            <div className="text-2xl font-bold tracking-tight text-white font-mono">{prediction.phase8MonteCarlo.winProbabilityAway}%</div>
+                            <div className="text-2xl font-bold tracking-tight text-white font-mono">{prediction.phase9MonteCarlo.winProbabilityAway}%</div>
                             <div className="mt-2 w-full bg-slate-950 h-1.5 rounded-full overflow-hidden">
-                              <div className="bg-blue-500 h-full" style={{ width: `${prediction.phase8MonteCarlo.winProbabilityAway}%` }} />
+                              <div className="bg-blue-500 h-full" style={{ width: `${prediction.phase9MonteCarlo.winProbabilityAway}%` }} />
                             </div>
                           </div>
                         </div>
@@ -752,12 +754,12 @@ export default function App() {
                         {/* Box 1: Poisson Scorelines & Confidence Block */}
                         <div className="bg-slate-900/20 border border-slate-900 rounded-xl p-4 space-y-4">
                           <div className="flex items-center justify-between border-b border-slate-900 pb-2">
-                            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">Most Likely Scorelines</h4>
-                            <span className="text-[10px] text-slate-500 font-mono">Poisson curve 1-3</span>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">Most Likely Poisson Scorelines</h4>
+                            <span className="text-[10px] text-slate-500 font-mono">Poisson curves 1-3</span>
                           </div>
                           
                           <div className="space-y-3">
-                            {prediction.phase8MonteCarlo.scorelineProjections?.slice(0, 3).map((p, i) => (
+                            {prediction.phase9MonteCarlo.scorelineProjections?.slice(0, 3).map((p, i) => (
                               <div key={i} className="flex items-center justify-between text-xs font-mono">
                                 <span className={`font-bold ${i === 0 ? 'text-emerald-400' : 'text-slate-300'}`}>#{i+1} Score: {p.score}</span>
                                 <div className="flex-1 mx-3 h-1.5 bg-slate-950 rounded-full overflow-hidden">
@@ -772,11 +774,11 @@ export default function App() {
                             <div className="flex items-center justify-between">
                               <span className="text-[10px] font-mono font-bold uppercase text-slate-500">Confidence Engine Rating</span>
                               <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
-                                {prediction.phase8MonteCarlo.predictionConfidenceScore}% Accuracy Expected
+                                {prediction.phase9MonteCarlo.predictionConfidenceScore}% Accuracy Expected
                               </span>
                             </div>
                             <p className="text-[11px] text-slate-400 font-sans leading-normal">
-                              {prediction.phase8MonteCarlo.predictionConfidenceExplanation || "Stable modeling limits based on low parameter discrepancy indices."}
+                              {prediction.phase9MonteCarlo.predictionConfidenceExplanation || "Stable modeling limits based on low parameter discrepancy indices."}
                             </p>
                           </div>
                         </div>
@@ -787,47 +789,57 @@ export default function App() {
                             <div className="flex items-center justify-between border-b border-slate-900 pb-2">
                               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">Value Bet detection</h4>
                               <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${
-                                prediction.phase9ValueBetDetection.edgeVerdict === 'VALUE OPPORTUNITY'
-                                  ? 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/25'
-                                  : 'bg-slate-800 text-slate-400 border border-slate-700'
+                                prediction.phase10ValueBetDetection.edgeVerdict === '🟢 VALUE OPPORTUNITY'
+                                  ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-505/25 animate-pulse'
+                                  : 'bg-slate-800 text-slate-405 border border-slate-700'
                               }`}>
-                                {prediction.phase9ValueBetDetection.edgeVerdict === 'VALUE OPPORTUNITY' ? '🟢 VALUE OPPORTUNITY' : '⚪ MARKET ALIGNED'}
+                                {prediction.phase10ValueBetDetection.edgeVerdict === '🟢 VALUE OPPORTUNITY' ? '🟢 VALUE OPPORTUNITY' : '⚠️ SKIP MATCH'}
                               </span>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2 text-center text-[11px] font-mono">
-                              <div className="bg-slate-950 p-2 rounded border border-slate-900">
-                                <span className="text-[9px] text-slate-500 uppercase block">Model (Fair)</span>
-                                <span className="font-bold text-slate-200">{prediction.phase9ValueBetDetection.modelOddsHome}</span>
-                                <div className={`text-[10px] font-bold mt-0.5 ${prediction.phase9ValueBetDetection.edgeHome >= 0 ? 'text-emerald-400' : 'text-rose-450'}`}>
-                                  {prediction.phase9ValueBetDetection.edgeHome >= 0 ? `+${prediction.phase9ValueBetDetection.edgeHome}% Edge` : `${prediction.phase9ValueBetDetection.edgeHome}% Edge`}
-                                </div>
+                            <div className="space-y-2 text-[11px] font-mono">
+                              <div className="grid grid-cols-4 gap-2 text-[9px] text-slate-500 uppercase font-bold text-center border-b border-slate-950 pb-1">
+                                <span>Selection</span>
+                                <span>Stratos Fair</span>
+                                <span>Bookie Odds</span>
+                                <span>Edge Margin</span>
                               </div>
-                              <div className="bg-slate-950 p-2 rounded border border-slate-900">
-                                <span className="text-[9px] text-slate-500 uppercase block">Draw</span>
-                                <span className="font-bold text-slate-200">{prediction.phase9ValueBetDetection.modelOddsDraw}</span>
-                                <div className={`text-[10px] font-bold mt-0.5 ${prediction.phase9ValueBetDetection.edgeDraw >= 0 ? 'text-emerald-400' : 'text-rose-450'}`}>
-                                  {prediction.phase9ValueBetDetection.edgeDraw >= 0 ? `+${prediction.phase9ValueBetDetection.edgeDraw}% Edge` : `${prediction.phase9ValueBetDetection.edgeDraw}% Edge`}
-                                </div>
+                              <div className="grid grid-cols-4 gap-2 items-center text-center py-0.5 border-b border-slate-900/30">
+                                <span className="text-slate-405 font-semibold text-left truncate">{prediction.matchInfo.homeTeam}</span>
+                                <span className="text-emerald-450 font-semibold">{prediction.phase10ValueBetDetection.calculatedOddsHome}</span>
+                                <span className="text-slate-350">{prediction.phase10ValueBetDetection.bookmakerOddsHome}</span>
+                                <span className={`font-bold ${prediction.phase10ValueBetDetection.valueMarginHome >= 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                  {prediction.phase10ValueBetDetection.valueMarginHome >= 0 ? `+${prediction.phase10ValueBetDetection.valueMarginHome}%` : `${prediction.phase10ValueBetDetection.valueMarginHome}%`}
+                                </span>
                               </div>
-                              <div className="bg-slate-950 p-2 rounded border border-slate-900">
-                                <span className="text-[9px] text-slate-500 uppercase block">Away</span>
-                                <span className="font-bold text-slate-200">{prediction.phase9ValueBetDetection.modelOddsAway}</span>
-                                <div className={`text-[10px] font-bold mt-0.5 ${prediction.phase9ValueBetDetection.edgeAway >= 0 ? 'text-emerald-400' : 'text-rose-450'}`}>
-                                  {prediction.phase9ValueBetDetection.edgeAway >= 0 ? `+${prediction.phase9ValueBetDetection.edgeAway}% Edge` : `${prediction.phase9ValueBetDetection.edgeAway}% Edge`}
-                                </div>
+                              <div className="grid grid-cols-4 gap-2 items-center text-center py-0.5 border-b border-slate-900/30">
+                                <span className="text-slate-405 font-semibold text-left">Draw 🤝</span>
+                                <span className="text-emerald-450 font-semibold">{prediction.phase10ValueBetDetection.calculatedOddsDraw}</span>
+                                <span className="text-slate-350">{prediction.phase10ValueBetDetection.bookmakerOddsDraw}</span>
+                                <span className={`font-bold ${prediction.phase10ValueBetDetection.valueMarginDraw >= 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                  {prediction.phase10ValueBetDetection.valueMarginDraw >= 0 ? `+${prediction.phase10ValueBetDetection.valueMarginDraw}%` : `${prediction.phase10ValueBetDetection.valueMarginDraw}%`}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-4 gap-2 items-center text-center py-0.5 text-slate-300">
+                                <span className="text-slate-405 font-semibold text-left truncate">{prediction.matchInfo.awayTeam}</span>
+                                <span className="text-emerald-450 font-semibold">{prediction.phase10ValueBetDetection.calculatedOddsAway}</span>
+                                <span className="text-slate-350">{prediction.phase10ValueBetDetection.bookmakerOddsAway}</span>
+                                <span className={`font-bold ${prediction.phase10ValueBetDetection.valueMarginAway >= 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                  {prediction.phase10ValueBetDetection.valueMarginAway >= 0 ? `+${prediction.phase10ValueBetDetection.valueMarginAway}%` : `${prediction.phase10ValueBetDetection.valueMarginAway}%`}
+                                </span>
                               </div>
                             </div>
                           </div>
 
                           <div className="text-[11px] text-slate-300 italic bg-slate-900/60 p-2.5 border border-slate-900 rounded-lg leading-relaxed mt-1">
-                            <strong>Edge Discrepancy details:</strong> {prediction.phase9ValueBetDetection.exactDiscrepancyExplanation}
+                            <strong>Edge Discrepancy details:</strong> {prediction.phase10ValueBetDetection.exactDiscrepancyExplanation}
                           </div>
                         </div>
 
                       </div>
+                    </div>
 
-                      {/* Recommendation Panel */}
+                    {/* Recommendation Panel */}
                       <div className="bg-gradient-to-r from-slate-900 via-emerald-950/10 to-indigo-950/20 border border-indigo-950/40 rounded-xl p-4" id="recommendation-badge">
                         <div className="flex items-start gap-3.5">
                           <div className="p-2.5 bg-indigo-505/10 border border-indigo-500/25 text-indigo-400 rounded-lg shrink-0">
@@ -835,42 +847,41 @@ export default function App() {
                           </div>
                           <div className="space-y-1">
                             <h4 className="text-[11px] uppercase font-bold font-mono tracking-wider text-indigo-400">STRATOS OPTIMAL PLAY PLAYBOOK</h4>
-                            <p className="text-sm font-bold text-slate-100">{prediction.phase9ValueBetDetection.valueRecommendation}</p>
+                            <p className="text-sm font-bold text-slate-105">{prediction.phase10ValueBetDetection.valueRecommendation}</p>
                           </div>
                         </div>
                       </div>
-
-                    </div>
+                    </>
                   )}
 
-                  {/* ====== TAB 2: BASELINES & FORM ====== */}
+                    {/* ====== TAB 2: BASELINES & MATCHUPS ====== */}
                   {activeTab === 'baselines' && (
                     <div className="space-y-6 animate-fade-in" id="baselines-tab">
                       
-                      {/* Phase 1: Power Ratings */}
+                      {/* Phase 1: ELO Strength */}
                       <div className="space-y-3">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
-                          <span>PHASE 1: TEAM POWER RATING</span>
-                          <span className="text-[10px] text-emerald-450 font-mono font-bold">Historical baseline stats</span>
+                          <span>PHASE 1: ELO & FOUNDATIONAL TEAM STRENGTH</span>
+                          <span className="text-[10px] text-emerald-400 font-mono font-bold">Historical baseline stats</span>
                         </h4>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-white font-mono">{prediction.matchInfo.homeTeam} Profile</span>
-                              <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                                PWR RATING: {prediction.phase1PowerRating.homeRating}
+                              <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-semibold">
+                                ELO: {prediction.phase1EloStrength.homeElo}
                               </span>
                             </div>
                             
                             <div className="grid grid-cols-2 gap-3 pt-1 text-xs">
                               <div className="bg-slate-950 p-2 border border-slate-900 rounded">
-                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Squad Depth Value</span>
-                                <span className="font-bold text-slate-300 font-mono text-[11px]">{prediction.phase1PowerRating.squadDepthValueHome}</span>
+                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Roster Value Value</span>
+                                <span className="font-bold text-slate-200 font-mono text-[11px]">{prediction.phase1EloStrength.rosterValueHome}</span>
                               </div>
                               <div className="bg-slate-950 p-2 border border-slate-900 rounded">
                                 <span className="text-[9px] text-slate-500 font-mono uppercase block">Historical xG Trend</span>
-                                <span className="font-bold text-slate-300 font-mono text-[11px]">+{prediction.phase1PowerRating.historicalXgTrendHome} xG/90</span>
+                                <span className="font-bold text-slate-200 font-mono text-[11px]">+{prediction.phase1EloStrength.historicalXgTrendHome} xG/90</span>
                               </div>
                             </div>
                           </div>
@@ -878,492 +889,536 @@ export default function App() {
                           <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-white font-mono">{prediction.matchInfo.awayTeam} Profile</span>
-                              <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                                PWR RATING: {prediction.phase1PowerRating.awayRating}
+                              <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-semibold">
+                                ELO: {prediction.phase1EloStrength.awayElo}
                               </span>
                             </div>
                             
                             <div className="grid grid-cols-2 gap-3 pt-1 text-xs">
                               <div className="bg-slate-950 p-2 border border-slate-900 rounded">
-                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Squad Depth Value</span>
-                                <span className="font-bold text-slate-300 font-mono text-[11px]">{prediction.phase1PowerRating.squadDepthValueAway}</span>
+                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Roster Value Value</span>
+                                <span className="font-bold text-slate-200 font-mono text-[11px]">{prediction.phase1EloStrength.rosterValueAway}</span>
                               </div>
                               <div className="bg-slate-950 p-2 border border-slate-900 rounded">
                                 <span className="text-[9px] text-slate-500 font-mono uppercase block">Historical xG Trend</span>
-                                <span className="font-bold text-slate-300 font-mono text-[11px]">+{prediction.phase1PowerRating.historicalXgTrendAway} xG/90</span>
+                                <span className="font-bold text-slate-200 font-mono text-[11px]">+{prediction.phase1EloStrength.historicalXgTrendAway} xG/90</span>
                               </div>
                             </div>
                           </div>
                         </div>
 
-                        <div className="bg-slate-900/25 border border-slate-900 p-3 rounded-lg">
-                          <span className="text-[10px] font-mono text-slate-500 block uppercase mb-1">Baseline Strength Analysis</span>
-                          <p className="text-xs text-slate-300 italic">"{prediction.phase1PowerRating.analysis}"</p>
+                        <div className="bg-slate-900/25 border border-slate-900 p-3 rounded-lg flex flex-col gap-1">
+                          <span className="text-[10px] font-mono font-bold text-slate-550 block uppercase">Gender-Specific slate Context</span>
+                          <span className="text-[11px] font-mono text-emerald-400 font-semibold">{prediction.phase1EloStrength.genderBaselineHistory}</span>
+                          <p className="text-xs text-slate-300 italic mt-1 bg-slate-950/40 p-2 rounded border border-slate-900">"{prediction.phase1EloStrength.analysis}"</p>
                         </div>
                       </div>
 
-                      {/* Phase 2: Form & Momentum */}
+                      {/* Phase 2: Tactical Matchup */}
                       <div className="space-y-3 pt-2">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
-                          <span>PHASE 2: FORM & MOMENTUM DELT-REGRESSION</span>
-                          <span className="text-[10px] text-slate-500 font-mono font-bold">Deviation logs last 5 matches</span>
+                          <span>PHASE 2: TACTICAL MATCHUP ENGINE</span>
+                          <span className="text-[10px] text-slate-500 font-mono font-bold">Pressing, Block & Formations</span>
                         </h4>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="font-bold text-slate-200">{prediction.matchInfo.homeTeam} Form Cycle</span>
-                              <div className="flex gap-1">
-                                {prediction.phase2FormMomentum.recentFormHome?.map((f, idx) => (
-                                  <span key={idx} className={`w-5 h-5 rounded-full flex items-center justify-center font-mono text-[10px] font-bold ${
-                                    f === 'W' ? 'bg-emerald-500/20 text-emerald-450 border border-emerald-500/30' : 
-                                    f === 'D' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'bg-rose-500/20 text-rose-455 border border-rose-500/30'
-                                  }`}>
-                                    {f}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-
+                            <span className="font-bold text-white font-mono block border-b border-slate-900 pb-1.5 text-xs uppercase">{prediction.matchInfo.homeTeam} Tactical Profile</span>
                             <div className="grid grid-cols-2 gap-3 pt-1 text-xs">
                               <div className="bg-slate-950 p-2 border border-slate-900 rounded">
-                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Expected vs Actual Points</span>
-                                <span className="font-mono font-bold text-slate-250 text-xs truncate block">{prediction.phase2FormMomentum.pointsDivergenceHome}</span>
+                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Formation Shape</span>
+                                <span className="font-bold text-slate-200 font-mono text-xs">{prediction.phase2TacticalMatchup.homeFormation}</span>
                               </div>
                               <div className="bg-slate-950 p-2 border border-slate-900 rounded">
-                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Clean Sheet Ratio</span>
-                                <span className="font-bold text-slate-300 text-xs block">{prediction.phase2FormMomentum.cleanSheetTrendHome}</span>
+                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Passing Velocity</span>
+                                <span className="font-bold text-slate-200 font-mono text-xs">{prediction.phase2TacticalMatchup.passingVelocityHome}</span>
+                              </div>
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded">
+                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Pressing (PPDA)</span>
+                                <span className="font-bold text-slate-200 font-mono text-xs">{prediction.phase2TacticalMatchup.homePpda} PPDA</span>
+                              </div>
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded">
+                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Defensive Block STYLE</span>
+                                <span className="font-bold text-slate-200 font-mono text-xs truncate block">{prediction.phase2TacticalMatchup.defensiveBlockStyleHome}</span>
                               </div>
                             </div>
                           </div>
 
                           <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="font-bold text-slate-200">{prediction.matchInfo.awayTeam} Form Cycle</span>
-                              <div className="flex gap-1">
-                                {prediction.phase2FormMomentum.recentFormAway?.map((f, idx) => (
-                                  <span key={idx} className={`w-5 h-5 rounded-full flex items-center justify-center font-mono text-[10px] font-bold ${
-                                    f === 'W' ? 'bg-emerald-500/20 text-emerald-455 border border-emerald-500/30' : 
-                                    f === 'D' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'bg-rose-500/20 text-rose-455 border border-rose-500/30'
-                                  }`}>
-                                    {f}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-
+                            <span className="font-bold text-white font-mono block border-b border-slate-900 pb-1.5 text-xs uppercase">{prediction.matchInfo.awayTeam} Tactical Profile</span>
                             <div className="grid grid-cols-2 gap-3 pt-1 text-xs">
                               <div className="bg-slate-950 p-2 border border-slate-900 rounded">
-                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Expected vs Actual Points</span>
-                                <span className="font-mono font-bold text-slate-250 text-xs truncate block">{prediction.phase2FormMomentum.pointsDivergenceAway}</span>
+                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Formation Shape</span>
+                                <span className="font-bold text-slate-200 font-mono text-xs">{prediction.phase2TacticalMatchup.awayFormation}</span>
                               </div>
                               <div className="bg-slate-950 p-2 border border-slate-900 rounded">
-                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Clean Sheet Ratio</span>
-                                <span className="font-bold text-slate-300 text-xs block">{prediction.phase2FormMomentum.cleanSheetTrendAway}</span>
+                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Passing Velocity</span>
+                                <span className="font-bold text-slate-200 font-mono text-xs">{prediction.phase2TacticalMatchup.passingVelocityAway}</span>
+                              </div>
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded">
+                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Pressing (PPDA)</span>
+                                <span className="font-bold text-slate-200 font-mono text-xs">{prediction.phase2TacticalMatchup.awayPpda} PPDA</span>
+                              </div>
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded">
+                                <span className="text-[9px] text-slate-500 font-mono uppercase block">Defensive Block STYLE</span>
+                                <span className="font-bold text-slate-200 font-mono text-xs truncate block">{prediction.phase2TacticalMatchup.defensiveBlockStyleAway}</span>
                               </div>
                             </div>
                           </div>
                         </div>
 
                         <div className="bg-slate-900/25 border border-slate-900 p-3 rounded-lg">
-                          <span className="text-[10px] font-mono text-slate-505 block uppercase mb-1 font-bold">Momentum Divergence Analysis</span>
-                          <p className="text-xs text-slate-300 italic">"{prediction.phase2FormMomentum.analysis}"</p>
+                          <span className="text-[10px] font-mono text-slate-550 block uppercase mb-1 font-bold">Formation & Tactical Compatibility Analysis</span>
+                          <p className="text-xs text-slate-300 italic">"{prediction.phase2TacticalMatchup.formationCompatibilityAnalysis}"</p>
                         </div>
                       </div>
 
                     </div>
                   )}
 
-                  {/* ====== TAB 3: TACTICAL ENGINE & STABILITY ====== */}
+                  {/* ====== TAB 3: SQUADS & STABILITY ====== */}
                   {activeTab === 'tactical' && (
                     <div className="space-y-6 animate-fade-in" id="tactical-tab">
                       
+                      {/* Phase 3: Squad Availability */}
                       <div className="space-y-3">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
-                          <span>PHASE 3: TACTICAL MATCHUPS & FORMATION STABILITY</span>
-                          <span className="text-[10px] text-slate-500 font-mono font-bold">Chaos parameters & pressing models</span>
+                          <span>PHASE 3: SQUAD AVAILABILITY INDEX</span>
+                          <span className="text-[10px] text-emerald-400 font-mono font-bold">Injury lists & sustainability modifiers</span>
                         </h4>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          
-                          {/* Formation and play styles */}
-                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-4">
-                            <span className="text-[9px] text-slate-500 uppercase font-mono block font-bold">Structural Formations</span>
-                            <div className="flex justify-between items-center bg-slate-950 p-2.5 border border-slate-900 rounded font-mono text-xs">
-                              <div>
-                                <span className="text-[10px] text-slate-505 uppercase block font-mono">Home</span>
-                                <span className="font-bold text-emerald-400 text-sm font-mono">{prediction.phase3TacticalEngine.homeFormation}</span>
-                              </div>
-                              <span className="text-slate-600 font-bold font-mono">VS</span>
-                              <div>
-                                <span className="text-[10px] text-slate-505 uppercase block font-mono">Away</span>
-                                <span className="font-bold text-amber-500 text-sm font-mono">{prediction.phase3TacticalEngine.awayFormation}</span>
-                              </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
+                            <div className="flex justify-between items-center border-b border-slate-950 pb-2">
+                              <span className="font-bold text-white font-mono text-xs uppercase">{prediction.matchInfo.homeTeam} Availability</span>
+                              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${prediction.phase3SquadAvailability.availabilityDeltaHome >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-450'}`}>
+                                DELTA: {prediction.phase3SquadAvailability.availabilityDeltaHome >= 0 ? `+${prediction.phase3SquadAvailability.availabilityDeltaHome}` : prediction.phase3SquadAvailability.availabilityDeltaHome} Rating Points
+                              </span>
                             </div>
 
-                            <span className="text-[9px] text-slate-500 uppercase font-mono block pt-1 font-bold">Play Styles</span>
-                            <div className="space-y-1.5 text-xs text-slate-300 leading-relaxed font-sans">
-                              <div><strong>Home style:</strong> {prediction.phase3TacticalEngine.homeTacticalStyle}</div>
-                              <div><strong>Away style:</strong> {prediction.phase3TacticalEngine.awayTacticalStyle}</div>
+                            <div className="space-y-2 text-xs">
+                              <div>
+                                <span className="text-[10px] text-slate-500 uppercase font-mono block">Depth Sustainability Score</span>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <div className="flex-1 bg-slate-950 h-2 rounded-full overflow-hidden">
+                                    <div className="bg-emerald-500 h-full" style={{ width: `${prediction.phase3SquadAvailability.depthSustainabilityScoreHome}%` }} />
+                                  </div>
+                                  <span className="font-bold font-mono text-slate-300">{prediction.phase3SquadAvailability.depthSustainabilityScoreHome}/100</span>
+                                </div>
+                              </div>
+                              <div className="pt-1">
+                                <span className="text-[10px] text-slate-500 uppercase font-mono block mb-1">Confirmed Missing Personnel</span>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {prediction.phase3SquadAvailability.missingPersonnelHome?.length ? (
+                                    prediction.phase3SquadAvailability.missingPersonnelHome.map((p, i) => (
+                                      <span key={i} className="text-[9px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded font-bold uppercase">
+                                        ❌ {p}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-[10px] text-emerald-440 font-semibold font-sans">🟢 Full squad available</span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
 
-                          {/* PPDA and Stability Ratings */}
-                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3 text-xs font-mono">
-                            <span className="text-[9px] text-slate-500 uppercase font-mono block font-bold">Pressing Intensity (PPDA)</span>
-                            <div className="space-y-2 border-b border-slate-900/50 pb-2">
+                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
+                            <div className="flex justify-between items-center border-b border-slate-950 pb-2">
+                              <span className="font-bold text-white font-mono text-xs uppercase">{prediction.matchInfo.awayTeam} Availability</span>
+                              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${prediction.phase3SquadAvailability.availabilityDeltaAway >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-450'}`}>
+                                DELTA: {prediction.phase3SquadAvailability.availabilityDeltaAway >= 0 ? `+${prediction.phase3SquadAvailability.availabilityDeltaAway}` : prediction.phase3SquadAvailability.availabilityDeltaAway} Rating Points
+                              </span>
+                            </div>
+
+                            <div className="space-y-2 text-xs">
                               <div>
-                                <div className="flex justify-between mb-0.5">
-                                  <span className="text-slate-400">{prediction.matchInfo.homeTeam} PPDA</span>
-                                  <span className="font-bold text-slate-200">{prediction.phase3TacticalEngine.homePpda} passes</span>
-                                </div>
-                                <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden">
-                                  <div className="bg-emerald-500 h-full" style={{ width: `${Math.max(15, 100 - (prediction.phase3TacticalEngine.homePpda * 5.5))}%` }} />
+                                <span className="text-[10px] text-slate-500 uppercase font-mono block">Depth Sustainability Score</span>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <div className="flex-1 bg-slate-950 h-2 rounded-full overflow-hidden">
+                                    <div className="bg-emerald-500 h-full" style={{ width: `${prediction.phase3SquadAvailability.depthSustainabilityScoreAway}%` }} />
+                                  </div>
+                                  <span className="font-bold font-mono text-slate-300">{prediction.phase3SquadAvailability.depthSustainabilityScoreAway}/100</span>
                                 </div>
                               </div>
-                              <div>
-                                <div className="flex justify-between mb-0.5">
-                                  <span className="text-slate-400">{prediction.matchInfo.awayTeam} PPDA</span>
-                                  <span className="font-bold text-slate-200">{prediction.phase3TacticalEngine.awayPpda} passes</span>
-                                </div>
-                                <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden">
-                                  <div className="bg-amber-500 h-full" style={{ width: `${Math.max(15, 100 - (prediction.phase3TacticalEngine.awayPpda * 5.5))}%` }} />
+                              <div className="pt-1">
+                                <span className="text-[10px] text-slate-500 uppercase font-mono block mb-1">Confirmed Missing Personnel</span>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {prediction.phase3SquadAvailability.missingPersonnelAway?.length ? (
+                                    prediction.phase3SquadAvailability.missingPersonnelAway.map((p, i) => (
+                                      <span key={i} className="text-[9px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded font-bold uppercase">
+                                        ❌ {p}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-[10px] text-emerald-440 font-semibold font-sans">🟢 Full squad available</span>
+                                  )}
                                 </div>
                               </div>
                             </div>
+                          </div>
+                        </div>
 
-                            <span className="text-[9px] text-slate-500 uppercase font-mono block font-bold mt-1">FORMATION STABILITY SCORE</span>
-                            <div className="space-y-2.5">
-                              <div>
-                                <div className="flex justify-between mb-0.5">
-                                  <span className="text-slate-400">Home Stability</span>
-                                  <span className="font-bold text-emerald-400">{prediction.phase3TacticalEngine.formationStabilityScoreHome || 85}/100</span>
+                        <div className="bg-slate-900/25 border border-slate-900 p-3 rounded-lg">
+                          <span className="text-[10px] font-mono text-slate-550 block uppercase mb-1 font-bold">Squad Availability Analysis</span>
+                          <p className="text-xs text-slate-300 italic">"{prediction.phase3SquadAvailability.analysis}"</p>
+                        </div>
+                      </div>
+
+                      {/* Phase 4: Formation Stability */}
+                      <div className="space-y-3 pt-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
+                          <span>PHASE 4: FORMATION STABILITY ENGINE</span>
+                          <span className="text-[10px] text-slate-550 font-mono font-bold">Formation consistency & tactical predictability</span>
+                        </h4>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
+                            <div className="flex justify-between items-center border-b border-slate-950 pb-2">
+                              <span className="font-bold text-white font-mono text-xs uppercase">{prediction.matchInfo.homeTeam} Stability</span>
+                              <span className="text-[10px] font-mono font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded">
+                                PENALTY: {prediction.phase4FormationStability.instabilityPenaltyHome} Rating Points
+                              </span>
+                            </div>
+                            <div className="space-y-2 text-xs">
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                  <span className="text-[9px] text-slate-500 uppercase block">Expected formation</span>
+                                  <span className="text-emerald-400 font-bold block text-sm mt-0.5">{prediction.phase4FormationStability.expectedFormationHome}</span>
                                 </div>
-                                <div className="w-full bg-slate-950 h-1 rounded-full overflow-hidden">
-                                  <div className="bg-emerald-500 h-full" style={{ width: `${prediction.phase3TacticalEngine.formationStabilityScoreHome || 85}%` }} />
+                                <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                  <span className="text-[9px] text-slate-500 uppercase block">Stability level</span>
+                                  <span className="text-slate-200 font-bold block text-sm mt-0.5">{prediction.phase4FormationStability.stabilityRatingHome}%</span>
                                 </div>
                               </div>
-                              <div>
-                                <div className="flex justify-between mb-0.5">
-                                  <span className="text-slate-400">Away Stability</span>
-                                  <span className="font-bold text-amber-500">{prediction.phase3TacticalEngine.formationStabilityScoreAway || 80}/100</span>
-                                </div>
-                                <div className="w-full bg-slate-950 h-1 rounded-full overflow-hidden">
-                                  <div className="bg-amber-500 h-full" style={{ width: `${prediction.phase3TacticalEngine.formationStabilityScoreAway || 80}%` }} />
+                              <div className="pt-1">
+                                <span className="text-[10px] text-slate-500 uppercase font-mono block mb-1">Rotation History (Last 5)</span>
+                                <div className="flex gap-1.5">
+                                  {prediction.phase4FormationStability.last5FormationsHome?.map((fm, i) => (
+                                    <span key={i} className="text-[9px] font-mono bg-slate-950 text-slate-350 border border-slate-900 px-2 py-0.5 rounded font-semibold">
+                                      {fm}
+                                    </span>
+                                  ))}
                                 </div>
                               </div>
-                              <p className="text-[10px] leading-tight text-slate-500 italic font-sans">
-                                (High stability score equals lower modeling chaos variance).
-                              </p>
                             </div>
                           </div>
 
-                          {/* Vulnerabilities & Matchup Synergies */}
-                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl flex flex-col justify-between" id="modifier-grid">
-                            <span className="text-[9px] text-slate-500 uppercase font-mono block font-bold mb-2">Transition vulnerability logs</span>
-                            <div className="space-y-2 text-xs font-sans text-slate-350 flex-1">
-                              <div><strong>Home vulnerability:</strong> <span className="text-rose-400">{prediction.phase3TacticalEngine.transitionVulnerabilityHome}</span></div>
-                              <div className="border-t border-slate-900/60 pt-2"><strong>Away vulnerability:</strong> <span className="text-rose-400">{prediction.phase3TacticalEngine.transitionVulnerabilityAway}</span></div>
+                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
+                            <div className="flex justify-between items-center border-b border-slate-950 pb-2">
+                              <span className="font-bold text-white font-mono text-xs uppercase">{prediction.matchInfo.awayTeam} Stability</span>
+                              <span className="text-[10px] font-mono font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded">
+                                PENALTY: {prediction.phase4FormationStability.instabilityPenaltyAway} Rating Points
+                              </span>
                             </div>
-                            <div className="pt-2 border-t border-slate-900/60 mt-3 text-[11px] text-slate-400 leading-normal italic font-sans bg-slate-950 p-2 rounded">
-                              <strong>Matchup analysis summary:</strong> "{prediction.phase3TacticalEngine.matchupAnalysis}"
+                            <div className="space-y-2 text-xs">
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                  <span className="text-[9px] text-slate-500 uppercase block">Expected formation</span>
+                                  <span className="text-emerald-400 font-bold block text-sm mt-0.5">{prediction.phase4FormationStability.expectedFormationAway}</span>
+                                </div>
+                                <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                  <span className="text-[9px] text-slate-500 uppercase block">Stability level</span>
+                                  <span className="text-slate-200 font-bold block text-sm mt-0.5">{prediction.phase4FormationStability.stabilityRatingAway}%</span>
+                                </div>
+                              </div>
+                              <div className="pt-1">
+                                <span className="text-[10px] text-slate-500 uppercase font-mono block mb-1">Rotation History (Last 5)</span>
+                                <div className="flex gap-1.5">
+                                  {prediction.phase4FormationStability.last5FormationsAway?.map((fm, i) => (
+                                    <span key={i} className="text-[9px] font-mono bg-slate-950 text-slate-350 border border-slate-900 px-2 py-0.5 rounded font-semibold">
+                                      {fm}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-slate-900/25 border border-slate-900 p-3 rounded-lg">
+                          <span className="text-[10px] font-mono text-slate-550 block uppercase mb-1 font-bold">Predictability & stability Analysis</span>
+                          <p className="text-xs text-slate-300 italic">"{prediction.phase4FormationStability.analysis}"</p>
+                        </div>
+                      </div>
+
+                    </div>
+                  )}
+                  {/* ====== TAB 4: TRAVEL & CLIMATE ====== */}
+                  {activeTab === 'modifiers' && (
+                    <div className="space-y-6 animate-fade-in" id="modifiers-tab">
+                      
+                      {/* Phase 5: Travel Stress */}
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
+                          <span>PHASE 5: TRAVEL STRESS INDEX (TSI)</span>
+                          <span className="text-[10px] text-emerald-400 font-mono font-bold font-mono text-[10px]">Transit distance & recovery profiles</span>
+                        </h4>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
+                            <span className="font-bold text-white font-mono block border-b border-slate-950 pb-1.5 text-xs uppercase">{prediction.matchInfo.homeTeam} Transit Status</span>
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                <span className="text-[9px] text-slate-500 uppercase block">Flight Distance</span>
+                                <span className="font-bold text-slate-200 block text-xs mt-0.5">{prediction.phase5TravelStress.flightDistanceMilesHome} miles</span>
+                              </div>
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                <span className="text-[9px] text-slate-500 uppercase block">Timezones Crossed</span>
+                                <span className="font-bold text-slate-200 block text-xs mt-0.5">{prediction.phase5TravelStress.timeZonesCrossedHome}</span>
+                              </div>
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                <span className="text-[9px] text-slate-500 uppercase block">Recovery Rest Time</span>
+                                <span className="font-bold text-slate-200 block text-xs mt-0.5">{prediction.phase5TravelStress.recoveryRestHoursHome} hours</span>
+                              </div>
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                <span className="text-[9px] text-slate-500 uppercase block">Travel Fatigue Score</span>
+                                <span className="font-bold text-rose-450 block text-xs mt-0.5">{prediction.phase5TravelStress.travelFatigueScoreHome}/100</span>
+                              </div>
                             </div>
                           </div>
 
+                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
+                            <span className="font-bold text-white font-mono block border-b border-slate-950 pb-1.5 text-xs uppercase">{prediction.matchInfo.awayTeam} Transit Status</span>
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                <span className="text-[9px] text-slate-500 uppercase block">Flight Distance</span>
+                                <span className="font-bold text-slate-200 block text-xs mt-0.5">{prediction.phase5TravelStress.flightDistanceMilesAway} miles</span>
+                              </div>
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                <span className="text-[9px] text-slate-500 uppercase block">Timezones Crossed</span>
+                                <span className="font-bold text-slate-200 block text-xs mt-0.5">{prediction.phase5TravelStress.timeZonesCrossedAway}</span>
+                              </div>
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                <span className="text-[9px] text-slate-505 uppercase block">Recovery Rest Time</span>
+                                <span className="font-bold text-slate-200 block text-xs mt-0.5">{prediction.phase5TravelStress.recoveryRestHoursAway} hours</span>
+                              </div>
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                <span className="text-[9px] text-slate-505 uppercase block">Travel Fatigue Score</span>
+                                <span className="font-bold text-rose-450 block text-xs mt-0.5">{prediction.phase5TravelStress.travelFatigueScoreAway}/100</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-slate-900/25 border border-slate-900 p-3 rounded-lg">
+                          <span className="text-[10px] font-mono text-slate-550 block uppercase mb-1 font-bold font-mono">Travel Stress Analysis</span>
+                          <p className="text-xs text-slate-300 italic">"{prediction.phase5TravelStress.analysis}"</p>
+                        </div>
+                      </div>
+
+                      {/* Phase 6: Climate Adaptation */}
+                      <div className="space-y-3 pt-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
+                          <span>PHASE 6: CLIMATE ADAPTATION ENGINE</span>
+                          <span className="text-[10px] text-slate-550 font-mono font-bold font-mono text-[10px]">Meteorological thresholds & decay adjustments</span>
+                        </h4>
+
+                        <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl grid grid-cols-3 gap-3 text-center mb-1">
+                          <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                            <span className="text-[9px] text-slate-500 block uppercase font-bold">Matchday Temp</span>
+                            <span className="text-emerald-400 font-bold block text-sm mt-0.5">{prediction.phase6ClimateAdaptation.matchdayTempCelsius}°C</span>
+                          </div>
+                          <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                            <span className="text-[9px] text-slate-500 block uppercase font-bold">Relative Humidity</span>
+                            <span className="text-indigo-400 font-bold block text-sm mt-0.5">{prediction.phase6ClimateAdaptation.matchdayHumidityPercent}%</span>
+                          </div>
+                          <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                            <span className="text-[9px] text-slate-500 block uppercase font-bold">Wind Velocity</span>
+                            <span className="text-amber-400 font-bold block text-sm mt-0.5">{prediction.phase6ClimateAdaptation.matchdayWindKmh} km/h</span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-2">
+                            <span className="font-bold text-white font-mono block border-b border-slate-950 pb-1 text-xs uppercase">{prediction.matchInfo.homeTeam} Matchday Profile</span>
+                            <div className="space-y-1 text-xs">
+                              <div><strong>Adaptation Strategy:</strong> <span className="text-slate-300">{prediction.phase6ClimateAdaptation.adaptationProfileHome}</span></div>
+                              <div className="pt-1.5 border-t border-slate-950 mt-1.5 flex justify-between items-center bg-slate-950/40 p-1.5 rounded font-mono text-[11px]">
+                                <span className="text-slate-500 uppercase">Climate Decay Rating Factor</span>
+                                <span className="text-rose-450 font-bold">-{prediction.phase6ClimateAdaptation.climateDecayFactorHome * 100}%</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-2">
+                            <span className="font-bold text-white font-mono block border-b border-slate-950 pb-1 text-xs uppercase">{prediction.matchInfo.awayTeam} Matchday Profile</span>
+                            <div className="space-y-1 text-xs">
+                              <div><strong>Adaptation Strategy:</strong> <span className="text-slate-300">{prediction.phase6ClimateAdaptation.adaptationProfileAway}</span></div>
+                              <div className="pt-1.5 border-t border-slate-950 mt-1.5 flex justify-between items-center bg-slate-950/40 p-1.5 rounded font-mono text-[11px]">
+                                <span className="text-slate-500 uppercase">Climate Decay Rating Factor</span>
+                                <span className="text-rose-455 font-bold">-{prediction.phase6ClimateAdaptation.climateDecayFactorAway * 100}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-slate-900/25 border border-slate-900 p-3 rounded-lg">
+                          <span className="text-[10px] font-mono text-slate-550 block uppercase mb-1 font-bold">Climate Adaptation Summary</span>
+                          <p className="text-xs text-slate-300 italic">"{prediction.phase6ClimateAdaptation.analysis}"</p>
                         </div>
                       </div>
 
                     </div>
                   )}
 
-                  {/* ====== TAB 4: VENUE, fatigue & PSYCHOLOGICAL MODIFIERS ====== */}
-                  {activeTab === 'modifiers' && (
-                    <div className="space-y-6 animate-fade-in" id="modifiers-tab">
+                  {/* ====== TAB 5: STADIUM & PSYCHOLOGY ====== */}
+                  {activeTab === 'validation' && (
+                    <div className="space-y-6 animate-fade-in" id="validation-tab">
                       
-                      {/* Phase 4: Venue & Environment */}
+                      {/* Phase 7: Stadium Intelligence */}
                       <div className="space-y-3">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
-                          <span>PHASE 4: VENUE & ENVIRONMENT INDEX MAP</span>
-                          <span className="text-[10px] text-slate-500 font-mono font-bold">Altitude elevation, turf coefficients, and crowd takeover indicators</span>
+                          <span>PHASE 7: STADIUM INTELLIGENCE LAYER</span>
+                          <span className="text-[10px] text-emerald-400 font-mono font-bold">Atmospheric density & microclimates</span>
                         </h4>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          <div className="bg-slate-900/40 border border-slate-900 p-3 rounded-xl flex items-center gap-3">
-                            {renderWeatherIcon(prediction.phase4VenueEnvironment?.weatherIcon)}
-                            <div className="leading-tight">
-                              <span className="text-[9px] text-slate-500 uppercase font-mono block">Atmosphere</span>
-                              <span className="text-xs font-bold text-slate-200">{prediction.phase4VenueEnvironment?.weatherDetails}</span>
-                            </div>
-                          </div>
-
-                          <div className="bg-slate-900/40 border border-slate-900 p-3 rounded-xl flex items-center gap-3">
-                            <Scale className="w-6 h-6 text-indigo-400 shrink-0" />
-                            <div className="leading-tight">
-                              <span className="text-[9px] text-slate-500 uppercase font-mono block">Pitch Elevation</span>
-                              <span className="text-xs font-bold text-slate-200">{prediction.phase4VenueEnvironment?.altitudeMeters}m Alt.</span>
-                            </div>
-                          </div>
-
-                          <div className="bg-slate-900/40 border border-slate-900 p-3 rounded-xl flex items-center gap-3">
-                            <Award className="w-6 h-6 text-amber-400 shrink-0" />
-                            <div className="leading-tight">
-                              <span className="text-[9px] text-slate-500 uppercase font-mono block">Fortress Bias</span>
-                              <span className="text-xs font-bold text-emerald-450">{prediction.phase4VenueEnvironment?.homeAdvantageMagnitude} Multipliers</span>
-                            </div>
-                          </div>
-
-                          <div className="bg-slate-900/40 border border-slate-900 p-3 rounded-xl flex items-center gap-3">
-                            <Play className="w-6 h-6 text-emerald-400 shrink-0 rotate-90" />
-                            <div className="leading-tight">
-                              <span className="text-[9px] text-slate-500 uppercase font-mono block">Turf Coefficient</span>
-                              <span className="text-xs font-bold font-mono text-slate-200">{prediction.phase4VenueEnvironment?.pitchFrictionTurf}</span>
-                            </div>
-                          </div>
-                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="bg-slate-900/40 border border-slate-900 p-3.5 rounded-xl space-y-2 text-xs font-mono">
-                            <span className="text-[9px] text-slate-500 uppercase font-mono block font-bold">Environment logistics</span>
-                            <div className="leading-normal space-y-1">
-                              <div><strong>Home penalty:</strong> <span className="text-emerald-400">{prediction.phase4VenueEnvironment?.travelDistancePenaltyHome}</span></div>
-                              <div><strong>Away penalty:</strong> <span className="text-rose-455 font-bold">{prediction.phase4VenueEnvironment?.travelDistancePenaltyAway}</span></div>
-                              <div className="border-t border-slate-900/50 pt-1 text-[11px]"><strong>Expected Crowd:</strong> <span className="text-slate-300 font-sans">{prediction.phase4VenueEnvironment?.crowdBiasExpected}</span></div>
-                            </div>
-                          </div>
-
-                          <div className="md:col-span-2 bg-slate-900/40 border border-slate-900 p-3.5 rounded-xl flex flex-col justify-center">
-                            <span className="text-[9px] text-slate-500 uppercase font-mono block font-bold mb-1">Venue Meteorological Analysis</span>
-                            <p className="text-xs text-slate-350 leading-relaxed italic">"{prediction.phase4VenueEnvironment?.environmentalAnalysis}"</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Phase 5: Squad Fatigue & Manager Profiles */}
-                      <div className="space-y-3 pt-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
-                          <span>PHASE 5: SQUAD FATIGUE & MANAGER PROFILE MAP</span>
-                          <span className="text-[10px] text-slate-500 font-mono font-bold font-mono text-[10px]">Recent fixture congestion & coaching experience metrics</span>
-                        </h4>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Fatigue Indicators */}
                           <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
-                            <span className="text-[9px] text-slate-550 uppercase font-mono block font-bold">FATIGUE INDEX (0-100)</span>
-                            <div className="space-y-3">
-                              <div>
-                                <div className="flex justify-between items-center text-xs mb-1">
-                                  <span className="text-slate-400 font-semibold">{prediction.matchInfo.homeTeam} Fatigue</span>
-                                  <span className={`font-mono font-bold ${prediction.phase5SquadFatigueManager?.fatigueScoreHome > 50 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                                    {prediction.phase5SquadFatigueManager?.fatigueScoreHome || 25}/100
-                                  </span>
-                                </div>
-                                <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden">
-                                  <div className="h-full bg-emerald-500" style={{ width: `${prediction.phase5SquadFatigueManager?.fatigueScoreHome || 25}%` }} />
-                                </div>
+                            <span className="font-bold text-white font-mono block border-b border-slate-950 pb-1.5 text-xs uppercase text-slate-400">Atmosphere Specs</span>
+                            <div className="space-y-2 text-xs">
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                <span className="text-[9px] text-slate-500 uppercase block">Elevation Level</span>
+                                <span className="font-bold text-slate-200 block text-xs mt-0.5">{prediction.phase7StadiumIntelligence.altitudeMeters} meters ALT</span>
                               </div>
-                              <div>
-                                <div className="flex justify-between items-center text-xs mb-1">
-                                  <span className="text-slate-400 font-semibold">{prediction.matchInfo.awayTeam} Fatigue</span>
-                                  <span className={`font-mono font-bold ${prediction.phase5SquadFatigueManager?.fatigueScoreAway > 50 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                                    {prediction.phase5SquadFatigueManager?.fatigueScoreAway || 65}/100
-                                  </span>
-                                </div>
-                                <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden">
-                                  <div className="h-full bg-amber-500" style={{ width: `${prediction.phase5SquadFatigueManager?.fatigueScoreAway || 65}%` }} />
-                                </div>
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                <span className="text-[9px] text-slate-500 uppercase block">Roof & Enclosure</span>
+                                <span className="font-bold text-slate-205 block text-xs mt-0.5">{prediction.phase7StadiumIntelligence.roofEnclosureState}</span>
+                              </div>
+                              <div className="bg-slate-950 p-2 border border-slate-900 rounded font-mono">
+                                <span className="text-[9px] text-slate-500 uppercase block">Turf Friction Coefficient</span>
+                                <span className="font-bold text-slate-205 block text-xs mt-0.5">{prediction.phase7StadiumIntelligence.pitchSurfaceFriction}</span>
                               </div>
                             </div>
-                            <p className="text-[11px] text-slate-405 leading-relaxed bg-slate-950 p-2.5 rounded border border-slate-900">
-                              <strong>Congestion context:</strong> {prediction.phase5SquadFatigueManager?.congestionAnalysis}
-                            </p>
                           </div>
 
-                          {/* Manager Profile stability */}
-                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3.5 text-xs">
-                            <span className="text-[9px] text-slate-550 uppercase font-mono block font-bold">Coaching stability profiles</span>
-                            <div className="space-y-1.5 leading-normal">
-                              <div><strong>Home Head Coach:</strong> <span className="text-slate-200">{prediction.phase5SquadFatigueManager?.managerExperienceHome}</span></div>
-                              <div><strong>Away Head Coach:</strong> <span className="text-slate-200">{prediction.phase5SquadFatigueManager?.managerExperienceAway}</span></div>
+                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3 md:col-span-2">
+                            <span className="font-bold text-white font-mono block border-b border-slate-950 pb-1.5 text-xs uppercase text-slate-400">Biomechanical Stamina Drainage</span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs leading-relaxed">
+                              <div className="bg-slate-950/65 p-3 rounded-lg border border-slate-900">
+                                <span className="text-[9px] font-mono font-bold text-emerald-400 block tracking-wide mb-1 uppercase">{prediction.matchInfo.homeTeam} Aerobic Impact</span>
+                                <p className="text-slate-300 font-sans leading-normal">{prediction.phase7StadiumIntelligence.altitudeStaminaImpactHome}</p>
+                              </div>
+                              <div className="bg-slate-950/65 p-3 rounded-lg border border-slate-900">
+                                <span className="text-[9px] font-mono font-bold text-emerald-400 block tracking-wide mb-1 uppercase">{prediction.matchInfo.awayTeam} Aerobic Impact</span>
+                                <p className="text-slate-300 font-sans leading-normal">{prediction.phase7StadiumIntelligence.altitudeStaminaImpactAway}</p>
+                              </div>
                             </div>
-                            <div className="border-t border-slate-900/60 pt-2 bg-slate-950/40 p-2 rounded leading-normal">
-                              <span className="text-[9px] text-slate-500 font-mono uppercase block font-bold">Uncertainty adjustments</span>
-                              <p className="text-[11px] text-slate-400 italic">"{prediction.phase5SquadFatigueManager?.managerDecisionImpact || "Standard model stability ratings apply."}"</p>
+                            <div className="bg-slate-950 p-2.5 rounded border border-slate-900 text-xs text-indigo-305 font-mono">
+                              <strong>Ball Physics Surcharge:</strong> {prediction.phase7StadiumIntelligence.altitudeBallPhysicsAdjustment}
                             </div>
                           </div>
                         </div>
+
+                        <div className="bg-slate-900/25 border border-slate-900 p-3 rounded-lg">
+                          <span className="text-[10px] font-mono text-slate-550 block uppercase mb-1 font-bold">Biometric & Aerobic Analysis</span>
+                          <p className="text-xs text-slate-300 italic">"{prediction.phase7StadiumIntelligence.stadiumAnalysis}"</p>
+                        </div>
                       </div>
 
-                      {/* Phase 6: Psychological Engine */}
+                      {/* Phase 8: Tournament Psychology */}
                       <div className="space-y-3 pt-2">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
-                          <span>PHASE 6: PSYCHOLOGICAL DRIVE & TOURNAMENT STAKES</span>
-                          <span className="text-[10px] text-slate-500 font-mono font-bold">Situation stakes, motivation profiles & rivalry indexes</span>
+                          <span>PHASE 8: TOURNAMENT PSYCHOLOGY & STAKES</span>
+                          <span className="text-[10px] text-slate-550 font-mono font-bold">Coaching defensive postures & rivalry pressure indicators</span>
                         </h4>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-2.5 text-xs">
-                            <span className="text-[9px] text-slate-500 uppercase font-mono block">Motivation & Stakes context</span>
-                            <div><strong>Home stakes:</strong> {prediction.phase6PsychologicalEngine?.motivationContextHome}</div>
-                            <div className="border-t border-slate-900/50 pt-1.5 mt-1.5"><strong>Away stakes:</strong> {prediction.phase6PsychologicalEngine?.motivationContextAway}</div>
+                            <span className="text-[9px] text-slate-500 uppercase font-mono block font-bold">Motivation Profile</span>
+                            <div><strong>Home Stakes:</strong> <span className="text-slate-200">{prediction.phase8TournamentPsychology.motivationContextHome}</span></div>
+                            <div className="border-t border-slate-950 pt-2 mt-2"><strong>Away Stakes:</strong> <span className="text-slate-200">{prediction.phase8TournamentPsychology.motivationContextAway}</span></div>
                           </div>
 
-                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3 text-xs font-mono">
-                            <span className="text-[9px] text-slate-500 uppercase block font-bold">Friction Indices</span>
+                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3 text-xs">
+                            <span className="text-[9px] text-slate-500 uppercase font-mono block font-bold">Defensive Risk Management</span>
                             <div className="space-y-2 leading-none">
-                              <div className="flex justify-between">
-                                <span className="text-slate-405">Derby Tension</span>
-                                <span className="text-emerald-400 font-bold font-mono">{prediction.phase6PsychologicalEngine?.derbyTensionLevel}</span>
-                              </div>
-                              <div className="flex justify-between pt-1 border-t border-slate-900/50">
-                                <span className="text-slate-405">Situational Stake Level</span>
-                                <span className="text-slate-200 text-[11px] truncate">{prediction.phase6PsychologicalEngine?.situationalStakes || "High"}</span>
-                              </div>
+                              <div><strong>Home Posture:</strong> <p className="text-slate-300 leading-normal text-[11px] font-mono mt-1">{prediction.phase8TournamentPsychology.riskMitigationBehaviorHome}</p></div>
+                              <div className="pt-2 border-t border-slate-950 mt-2"><strong>Away Posture:</strong> <p className="text-slate-300 leading-normal text-[11px] font-mono mt-1">{prediction.phase8TournamentPsychology.riskMitigationBehaviorAway}</p></div>
                             </div>
                           </div>
 
                           <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-2.5 flex flex-col justify-between text-xs">
                             <div>
-                              <span className="text-[9px] text-slate-500 uppercase block font-mono">Simulated Psychological Edge</span>
-                              <span className="text-xs font-bold text-emerald-400 block lg:text-[13px]">{prediction.phase6PsychologicalEngine?.psychologicalEdge}</span>
+                              <span className="text-[9px] text-slate-500 uppercase block font-mono">Situational Pressure Index</span>
+                              <div className="flex justify-between items-center text-xs font-mono bg-slate-950 p-2 border border-slate-900 rounded mt-1">
+                                <span className="text-[10px] text-slate-500">DERBY TENSION</span>
+                                <span className="text-amber-500 font-bold">{prediction.phase8TournamentPsychology.derbyTensionLevel}</span>
+                              </div>
+                              <div className="text-[10px] text-slate-500 uppercase font-mono mt-2.5 block">Competition Weighting</div>
+                              <div className="text-xs font-semibold text-slate-200">{prediction.phase8TournamentPsychology.competitionContext}</div>
                             </div>
-                            <p className="text-[11px] text-slate-400 leading-normal italic">
-                              "{prediction.phase6PsychologicalEngine?.psychologicalAnalysis}"
+                            <p className="text-[11px] text-slate-400 leading-normal italic pt-2 border-t border-slate-950">
+                              "{prediction.phase8TournamentPsychology.behavioralLogicAnalysis}"
                             </p>
                           </div>
                         </div>
                       </div>
-
-                    </div>
-                  )}
-
-                  {/* ====== TAB 5: LINEUP VALIDATION ====== */}
-                  {activeTab === 'validation' && (
-                    <div className="space-y-6 animate-fade-in" id="validation-tab">
-                      
-                      <div className="space-y-3">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
-                          <span>PHASE 7: PRE-KICKOFF LINEUP VALIDATION LAYER</span>
-                          <span className={`text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded ${
-                            prediction.phase7MatchdayValidation?.validationVerdict ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25' : 'bg-amber-500/10 text-amber-400 border border-amber-500/25'
-                          }`}>{prediction.phase7MatchdayValidation?.validationVerdict || "VALIDATION COMPLETED"}</span>
-                        </h4>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          
-                          {/* Home lineups */}
-                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-4">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-white font-mono">{prediction.matchInfo.homeTeam} Confirmation</span>
-                              <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">
-                                {prediction.phase7MatchdayValidation?.expectedVsConfirmedHome}
-                              </span>
-                            </div>
-
-                            <div className="text-xs space-y-2">
-                              <div className="bg-slate-950 p-2.5 border border-slate-900 rounded font-mono">
-                                <span className="text-[9px] text-slate-500 block uppercase font-bold">Tactical Shift adjustments</span>
-                                <p className="text-slate-350 font-sans mt-1 leading-normal">{prediction.phase7MatchdayValidation?.confirmedTacticalShiftHome}</p>
-                              </div>
-
-                              <div className="flex justify-between items-center text-xs font-mono bg-slate-950 p-2 border border-slate-900 rounded">
-                                <span className="text-[10px] text-slate-500">LINEUP RATING DECAY DELTA</span>
-                                <span className="text-amber-500 font-bold">{prediction.phase7MatchdayValidation?.lineupDisruptionScoreHome || 0} rating impact</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Away lineups */}
-                          <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-4">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-white font-mono">{prediction.matchInfo.awayTeam} Confirmation</span>
-                              <span className="text-[10px] font-mono text-emerald-450 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">
-                                {prediction.phase7MatchdayValidation?.expectedVsConfirmedAway}
-                              </span>
-                            </div>
-
-                            <div className="text-xs space-y-2">
-                              <div className="bg-slate-950 p-2.5 border border-slate-900 rounded font-mono">
-                                <span className="text-[9px] text-slate-500 block uppercase font-bold">Tactical Shift adjustments</span>
-                                <p className="text-slate-355 font-sans mt-1 leading-normal">{prediction.phase7MatchdayValidation?.confirmedTacticalShiftAway}</p>
-                              </div>
-
-                              <div className="flex justify-between items-center text-xs font-mono bg-slate-950 p-2 border border-slate-900 rounded">
-                                <span className="text-[10px] text-slate-505">LINEUP RATING DECAY DELTA</span>
-                                <span className="text-amber-500 font-bold">{prediction.phase7MatchdayValidation?.lineupDisruptionScoreAway || 0} rating impact</span>
-                              </div>
-                            </div>
-                          </div>
-
-                        </div>
-
-                        {/* Deductions analytical context (Striker out => drop, reducing xG by calculated value) */}
-                        <div className="bg-slate-900/50 p-3.5 border border-slate-900 rounded-xl leading-relaxed text-xs space-y-1.5">
-                          <span className="text-[10px] uppercase font-mono font-bold text-emerald-400 block tracking-wider">
-                            Personnel Rating Deduction Analysis
-                          </span>
-                          <p className="text-slate-300 italic leading-relaxed font-sans">
-                            {prediction.phase7MatchdayValidation?.personnelDeductionAnalysis || "Starting XI ratings congruent with foundational benchmarks. No extreme personnel metrics dropped focal xG models."}
-                          </p>
-                        </div>
-
-                        <div className="bg-slate-900/30 p-3 border border-slate-900 rounded-xl text-xs font-mono">
-                          <span className="text-[10px] text-slate-500 uppercase block font-bold mb-1">Roster Scrapes & Late Scratch warnings</span>
-                          <p className="text-slate-300 italic">"{prediction.phase7MatchdayValidation?.suspensionsAndLateScrapes}"</p>
-                        </div>
-                      </div>
-
                     </div>
                   )}
 
                   {/* ====== TAB 6: PREMIUM STRATOS v2 MATCH DAY SYSTEM ====== */}
                   {activeTab === 'stratosV2' && (() => {
-                    const s2 = prediction.stratosV2 || {
+                    const s2 = {
                       matchStressReport: {
                         venueName: prediction.matchInfo.venue,
                         localTime: kickoffTime || "15:00",
-                        roofStatus: "Open-air Mode",
-                        environmentalStressIndex: "LOW" as const,
-                        temperatureCelsius: matchTemperature,
+                        roofStatus: prediction.phase7StadiumIntelligence?.roofEnclosureState === "CLOSED" ? "Closed Dome" : "Open-air Mode",
+                        environmentalStressIndex: prediction.summaryDataBlocks?.matchStressAndContext?.esiIndex || "LOW",
+                        temperatureCelsius: matchTemperature !== undefined ? matchTemperature : 22,
                         humidityPercentage: pitchMoisture === "Wet/Raining" ? 85 : 55,
                         solarRadiation: "Standard Solar Level",
                         airQualityIndex: "Good (AQI 32)",
-                        altitudeMeters: prediction.matchInfo.venue.toLowerCase().includes("mexico") ? 2240 : prediction.matchInfo.venue.toLowerCase().includes("guada") ? 1566 : 100,
-                        haiHomeScore: 90,
-                        haiHomePerformanceDrop: prediction.matchInfo.venue.toLowerCase().includes("mexico") && !altitudeCampHome ? 12 : 2,
-                        haiAwayScore: 90,
-                        haiAwayPerformanceDrop: prediction.matchInfo.venue.toLowerCase().includes("mexico") && !altitudeCampAway ? 12 : 2,
+                        altitudeMeters: (prediction.matchInfo.venue.toLowerCase().includes("mexico") ? 2240 : prediction.matchInfo.venue.toLowerCase().includes("guada") ? 1566 : 100),
+                        haiHomeScore: prediction.matchdayContext?.motivationIndexHome !== undefined ? prediction.matchdayContext.motivationIndexHome : 90,
+                        haiHomePerformanceDrop: prediction.matchdayContext?.absenceImpactHome !== undefined ? prediction.matchdayContext.absenceImpactHome : 2,
+                        haiAwayScore: prediction.matchdayContext?.motivationIndexAway !== undefined ? prediction.matchdayContext.motivationIndexAway : 90,
+                        haiAwayPerformanceDrop: prediction.matchdayContext?.absenceImpactAway !== undefined ? prediction.matchdayContext.absenceImpactAway : 2,
                         mostAffectedPositions: ["Central Midfielders", "Wingbacks"],
-                        substituteImportanceAnalysis: "High structural fatigue expected from high altitude or summer heat.",
-                        travelDistanceMilesHome: 300,
-                        travelDistanceMilesAway: 3000,
-                        timeZoneDeltaHome: 0,
-                        timeZoneDeltaAway: -5,
-                        restDaysHome: 6,
-                        restDaysAway: 5,
-                        benchSustainabilityScoreHome: 80,
-                        benchSustainabilityScoreAway: 80
+                        substituteImportanceAnalysis: `Important match event official: ${prediction.matchdayContext?.refereeName || "Szymon Marciniak"} with average of ${prediction.matchdayContext?.cardsPerMatch || 4.8} cards and penalty rate of ${prediction.matchdayContext?.penaltyFrequencyPct || 24.5}%. Context stakes: ${prediction.matchdayContext?.importanceMultiplier || 1.5}x weight.`,
+                        travelDistanceMilesHome: prediction.phase5TravelStress?.flightDistanceMilesHome || 300,
+                        travelDistanceMilesAway: prediction.phase5TravelStress?.flightDistanceMilesAway || 3000,
+                        timeZoneDeltaHome: prediction.phase5TravelStress?.timeZonesCrossedHome || 0,
+                        timeZoneDeltaAway: -(prediction.phase5TravelStress?.timeZonesCrossedAway || 5),
+                        restDaysHome: prediction.phase5TravelStress?.recoveryRestHoursHome ? Math.round(prediction.phase5TravelStress.recoveryRestHoursHome / 24) : 6,
+                        restDaysAway: prediction.phase5TravelStress?.recoveryRestHoursAway ? Math.round(prediction.phase5TravelStress.recoveryRestHoursAway / 24) : 5,
+                        benchSustainabilityScoreHome: prediction.phase3SquadAvailability?.depthSustainabilityScoreHome || 80,
+                        benchSustainabilityScoreAway: prediction.phase3SquadAvailability?.depthSustainabilityScoreAway || 80
                       },
                       valueBetOverlay: {
-                        targetMarket: "Draw-No-Bet",
-                        edgePercentage: 4.5,
-                        calculatedOdds: "+150",
-                        marketOdds: "+180",
-                        verdict: "VALUE OPPORTUNITY" as const
+                        targetMarket: prediction.phase10ValueBetDetection?.targetMarketSelection || "Draw-No-Bet",
+                        edgePercentage: Math.max(prediction.phase10ValueBetDetection?.valueMarginHome || 0, prediction.phase10ValueBetDetection?.valueMarginAway || 0),
+                        calculatedOdds: prediction.phase10ValueBetDetection?.calculatedOddsHome || "+150",
+                        marketOdds: prediction.phase10ValueBetDetection?.bookmakerOddsHome || "+180",
+                        verdict: prediction.phase10ValueBetDetection?.edgeVerdict === "🟢 VALUE OPPORTUNITY" ? "VALUE OPPORTUNITY" as const : "MARKET ALIGNED" as const
                       }
                     };
                     return (
                       <div className="space-y-6 animate-fade-in" id="stratos-v2-tab">
                         
+                        {/* Section 0: STRATOS COGNITIVE EXPLAINABILITY INTEL */}
+                        {prediction.cognitiveNarrative && (
+                          <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-xl space-y-3 font-sans">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 font-mono flex items-center justify-between border-b border-slate-800 pb-2">
+                              <span>COGNITIVE INTERPRETATION & TACTICAL REPORT (STRATOS v2 LAYER)</span>
+                              <span className="text-[9px] font-mono font-bold text-amber-500">Live AI Reasoning Layer</span>
+                            </h4>
+                            <div className="text-slate-300 text-xs leading-relaxed max-w-none prose prose-invert prose-xs markdown-body space-y-2">
+                              <ReactMarkdown>{prediction.cognitiveNarrative}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Section 1: MATCH STRESS REPORT */}
                         <div className="space-y-3">
                           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
                             <span>SECTION 1: BIOMECHANICAL MATCH STRESS REPORT & AUDIT</span>
                             <span className={`text-[10px] font-mono leading-none tracking-wider font-bold px-2 py-1 rounded border ${
                               s2.matchStressReport.environmentalStressIndex === 'SEVERE'
-                                ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse'
-                                : s2.matchStressReport.environmentalStressIndex === 'MODERATE'
-                                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                                 ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse'
+                                 : s2.matchStressReport.environmentalStressIndex === 'MODERATE'
+                                   ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                                   : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                             }`}>
                               ESI Stress: {s2.matchStressReport.environmentalStressIndex}
                             </span>
@@ -1628,15 +1683,15 @@ export default function App() {
                               <div className="space-y-2 text-xs font-mono">
                                 <div className="flex justify-between items-center p-2 bg-slate-950/40 rounded border border-slate-900">
                                   <span>{prediction.matchInfo.homeTeam} Win</span>
-                                  <span className="font-bold text-emerald-400">{prediction.phase8MonteCarlo.winProbabilityHome}%</span>
+                                  <span className="font-bold text-emerald-400">{prediction.phase9MonteCarlo.winProbabilityHome}%</span>
                                 </div>
                                 <div className="flex justify-between items-center p-2 bg-slate-950/40 rounded border border-slate-900">
                                   <span>Draw Chance</span>
-                                  <span className="font-bold text-amber-500">{prediction.phase8MonteCarlo.winProbabilityDraw}%</span>
+                                  <span className="font-bold text-amber-500">{prediction.phase9MonteCarlo.winProbabilityDraw}%</span>
                                 </div>
                                 <div className="flex justify-between items-center p-2 bg-slate-950/40 rounded border border-slate-900">
                                   <span>{prediction.matchInfo.awayTeam} Win</span>
-                                  <span className="font-bold text-blue-400">{prediction.phase8MonteCarlo.winProbabilityAway}%</span>
+                                  <span className="font-bold text-blue-400">{prediction.phase9MonteCarlo.winProbabilityAway}%</span>
                                 </div>
                               </div>
                             </div>
@@ -1648,11 +1703,11 @@ export default function App() {
                                 <div className="flex justify-between items-center">
                                   <span className="text-xs text-slate-400">Confidence Score</span>
                                   <span className="text-xs font-bold text-emerald-450 bg-emerald-500/10 px-2.5 py-0.5 rounded font-mono border border-emerald-500/20 font-bold">
-                                    {prediction.phase8MonteCarlo.predictionConfidenceScore}% Accuracy Expected
+                                    {prediction.phase9MonteCarlo.predictionConfidenceScore}% Accuracy Expected
                                   </span>
                                 </div>
                                 <p className="text-[11px] leading-relaxed text-slate-400 italic font-sans">
-                                  {prediction.phase8MonteCarlo.predictionConfidenceExplanation}
+                                  {prediction.phase9MonteCarlo.predictionConfidenceExplanation}
                                 </p>
                               </div>
                             </div>
@@ -1661,7 +1716,7 @@ export default function App() {
                             <div className="bg-slate-900/20 border border-slate-900 p-4 rounded-xl space-y-3 font-mono">
                               <span className="text-[10px] uppercase font-mono font-bold text-slate-500 block border-b border-slate-900 pb-1 mb-2">Likeliest Poisson Scorelines</span>
                               <div className="space-y-2 text-xs">
-                                {prediction.phase8MonteCarlo.scorelineProjections?.slice(0, 3).map((p, idx) => (
+                                {prediction.phase9MonteCarlo.scorelineProjections?.slice(0, 3).map((p, idx) => (
                                   <div key={idx} className="flex justify-between items-center p-2 bg-slate-950/40 rounded border border-slate-900 font-mono">
                                     <span className={idx === 0 ? "text-emerald-400 font-bold" : "text-slate-400"}>#{idx+1} Scoreline: {p.score}</span>
                                     <span className="font-bold text-slate-205">{p.probability}%</span>
@@ -1719,7 +1774,7 @@ export default function App() {
                               </div>
                               <div className="space-y-1">
                                 <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500 font-bold block">Expected Value (EV+) Action Protocol</span>
-                                <p className="text-xs font-bold text-slate-100 font-sans">{prediction.phase9ValueBetDetection.valueRecommendation}</p>
+                                <p className="text-xs font-bold text-slate-100 font-sans">{prediction.phase10ValueBetDetection.valueRecommendation}</p>
                               </div>
                             </div>
 

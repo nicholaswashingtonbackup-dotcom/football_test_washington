@@ -32,7 +32,7 @@ function getGeminiClient(): GoogleGenAI {
   return aiClient;
 }
 
-// Structured JSON Schema for STRATOS v2 9-Phase Predictive Engine Architecture
+// Structured JSON Schema for STRATOS v2 10-Phase Predictive Engine Architecture
 const soccerPredictionSchema = {
   type: Type.OBJECT,
   properties: {
@@ -50,142 +50,207 @@ const soccerPredictionSchema = {
     matchdayContext: {
       type: Type.OBJECT,
       properties: {
-        venueStatus: { type: Type.STRING, description: "Must be: 'Standard League Match (Mode A)' or 'Tournament / Neutral Venue (Mode B)'" },
-        environmentalAdjustments: { type: Type.STRING, description: "Detailed flight fatigue, weather climate indices, turf friction description" },
-        venueInfluenceIndex: { type: Type.STRING, description: "Quantification of expected crowd turnout, takeover bias, or altitude factors" },
+        venueStatus: { type: Type.STRING },
+        environmentalAdjustments: { type: Type.STRING },
+        venueInfluenceIndex: { type: Type.STRING },
+        refereeName: { type: Type.STRING },
+        cardsPerMatch: { type: Type.NUMBER },
+        penaltyFrequencyPct: { type: Type.NUMBER },
+        oddsDriftPct: { type: Type.NUMBER },
+        importanceMultiplier: { type: Type.NUMBER },
+        motivationIndexHome: { type: Type.NUMBER },
+        motivationIndexAway: { type: Type.NUMBER },
+        lineupShockDetectedHome: { type: Type.BOOLEAN },
+        lineupShockDetectedAway: { type: Type.BOOLEAN },
+        absenceImpactHome: { type: Type.NUMBER },
+        absenceImpactAway: { type: Type.NUMBER },
+        data_quality_score: { type: Type.NUMBER },
+        dataQualityScore: { type: Type.NUMBER },
+        starting_xi_continuity_home: { type: Type.NUMBER },
+        startingXiContinuityHome: { type: Type.NUMBER },
+        starting_xi_continuity_away: { type: Type.NUMBER },
+        startingXiContinuityAway: { type: Type.NUMBER },
+        coach_tenure_months_home: { type: Type.NUMBER },
+        coachTenureMonthsHome: { type: Type.NUMBER },
+        coach_tenure_months_away: { type: Type.NUMBER },
+        coachTenureMonthsAway: { type: Type.NUMBER },
+        days_rest_home: { type: Type.NUMBER },
+        daysRestHome: { type: Type.NUMBER },
+        days_rest_away: { type: Type.NUMBER },
+        daysRestAway: { type: Type.NUMBER },
+        calculated_edge_pct: { type: Type.NUMBER },
+        calculatedEdgePct: { type: Type.NUMBER },
+        stratos_confidence_score: { type: Type.NUMBER },
+        stratosConfidenceScore: { type: Type.NUMBER },
       },
-      required: ["venueStatus", "environmentalAdjustments", "venueInfluenceIndex"],
+      required: [
+        "venueStatus",
+        "environmentalAdjustments",
+        "venueInfluenceIndex",
+        "refereeName",
+        "cardsPerMatch",
+        "penaltyFrequencyPct",
+        "oddsDriftPct",
+        "importanceMultiplier",
+        "motivationIndexHome",
+        "motivationIndexAway",
+        "lineupShockDetectedHome",
+        "lineupShockDetectedAway",
+        "absenceImpactHome",
+        "absenceImpactAway",
+        "data_quality_score",
+        "dataQualityScore",
+        "starting_xi_continuity_home",
+        "startingXiContinuityHome",
+        "starting_xi_continuity_away",
+        "startingXiContinuityAway",
+        "coach_tenure_months_home",
+        "coachTenureMonthsHome",
+        "coach_tenure_months_away",
+        "coachTenureMonthsAway",
+        "days_rest_home",
+        "daysRestHome",
+        "days_rest_away",
+        "daysRestAway",
+        "calculated_edge_pct",
+        "calculatedEdgePct",
+        "stratos_confidence_score",
+        "stratosConfidenceScore"
+      ],
     },
     explainabilityLayer: {
       type: Type.OBJECT,
       properties: {
-        positiveDrivers: { type: Type.ARRAY, items: { type: Type.STRING }, description: "e.g. ['+ Attacking xG Advantage [+11%]', '+ Tactical Formation Matchup [+6%]']" },
-        negativeFactors: { type: Type.ARRAY, items: { type: Type.STRING }, description: "e.g. ['- Squad Fatigue Index 82/100 [-5%]', '- Lineup Disruption [-4%]']" },
+        positiveDrivers: { type: Type.ARRAY, items: { type: Type.STRING } },
+        negativeFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
       },
       required: ["positiveDrivers", "negativeFactors"],
     },
     whyNotEngine: {
       type: Type.OBJECT,
       properties: {
-        failureConditions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Explicit tactical/random events that could break this prediction" },
+        failureConditions: { type: Type.ARRAY, items: { type: Type.STRING } },
       },
       required: ["failureConditions"],
     },
-    phase1PowerRating: {
+    phase1EloStrength: {
       type: Type.OBJECT,
       properties: {
-        homeRating: { type: Type.NUMBER, description: "Power score out of 100, e.g. 84.5" },
-        awayRating: { type: Type.NUMBER, description: "Power score out of 100, e.g. 81.2" },
-        squadDepthValueHome: { type: Type.STRING },
-        squadDepthValueAway: { type: Type.STRING },
+        homeElo: { type: Type.NUMBER },
+        awayElo: { type: Type.NUMBER },
         historicalXgTrendHome: { type: Type.NUMBER },
         historicalXgTrendAway: { type: Type.NUMBER },
+        rosterValueHome: { type: Type.STRING },
+        rosterValueAway: { type: Type.STRING },
+        genderBaselineHistory: { type: Type.STRING },
         analysis: { type: Type.STRING },
       },
-      required: ["homeRating", "awayRating", "squadDepthValueHome", "squadDepthValueAway", "historicalXgTrendHome", "historicalXgTrendAway", "analysis"],
+      required: ["homeElo", "awayElo", "historicalXgTrendHome", "historicalXgTrendAway", "rosterValueHome", "rosterValueAway", "genderBaselineHistory", "analysis"],
     },
-    phase2FormMomentum: {
-      type: Type.OBJECT,
-      properties: {
-        recentFormHome: { type: Type.ARRAY, items: { type: Type.STRING }, description: "e.g. Array of W, D, L in last 5 games" },
-        recentFormAway: { type: Type.ARRAY, items: { type: Type.STRING } },
-        pointsDivergenceHome: { type: Type.STRING, description: "Expected vs actual points divergence trend last 5" },
-        pointsDivergenceAway: { type: Type.STRING },
-        cleanSheetTrendHome: { type: Type.STRING },
-        cleanSheetTrendAway: { type: Type.STRING },
-        analysis: { type: Type.STRING },
-      },
-      required: ["recentFormHome", "recentFormAway", "pointsDivergenceHome", "pointsDivergenceAway", "cleanSheetTrendHome", "cleanSheetTrendAway", "analysis"],
-    },
-    phase3TacticalEngine: {
+    phase2TacticalMatchup: {
       type: Type.OBJECT,
       properties: {
         homeFormation: { type: Type.STRING },
         awayFormation: { type: Type.STRING },
-        homeTacticalStyle: { type: Type.STRING },
-        awayTacticalStyle: { type: Type.STRING },
-        homePpda: { type: Type.NUMBER, description: "Passes allowed per defensive action" },
+        passingVelocityHome: { type: Type.STRING },
+        passingVelocityAway: { type: Type.STRING },
+        homePpda: { type: Type.NUMBER },
         awayPpda: { type: Type.NUMBER },
-        formationStabilityScoreHome: { type: Type.NUMBER, description: "Stability Score (0-100)" },
-        formationStabilityScoreAway: { type: Type.NUMBER, description: "Stability Score (0-100)" },
-        transitionVulnerabilityHome: { type: Type.STRING },
-        transitionVulnerabilityAway: { type: Type.STRING },
-        matchupAnalysis: { type: Type.STRING },
+        defensiveBlockStyleHome: { type: Type.STRING },
+        defensiveBlockStyleAway: { type: Type.STRING },
+        formationCompatibilityAnalysis: { type: Type.STRING },
       },
-      required: [
-        "homeFormation",
-        "awayFormation",
-        "homeTacticalStyle",
-        "awayTacticalStyle",
-        "homePpda",
-        "awayPpda",
-        "formationStabilityScoreHome",
-        "formationStabilityScoreAway",
-        "transitionVulnerabilityHome",
-        "transitionVulnerabilityAway",
-        "matchupAnalysis"
-      ],
+      required: ["homeFormation", "awayFormation", "passingVelocityHome", "passingVelocityAway", "homePpda", "awayPpda", "defensiveBlockStyleHome", "defensiveBlockStyleAway", "formationCompatibilityAnalysis"],
     },
-    phase4VenueEnvironment: {
+    phase3SquadAvailability: {
       type: Type.OBJECT,
       properties: {
-        weatherDetails: { type: Type.STRING },
-        weatherIcon: { type: Type.STRING, description: "one of: rain, sun, cloud, wind, snow" },
+        missingPersonnelHome: { type: Type.ARRAY, items: { type: Type.STRING } },
+        missingPersonnelAway: { type: Type.ARRAY, items: { type: Type.STRING } },
+        availabilityDeltaHome: { type: Type.NUMBER },
+        availabilityDeltaAway: { type: Type.NUMBER },
+        depthSustainabilityScoreHome: { type: Type.NUMBER },
+        depthSustainabilityScoreAway: { type: Type.NUMBER },
+        analysis: { type: Type.STRING },
+      },
+      required: ["missingPersonnelHome", "missingPersonnelAway", "availabilityDeltaHome", "availabilityDeltaAway", "depthSustainabilityScoreHome", "depthSustainabilityScoreAway", "analysis"],
+    },
+    phase4FormationStability: {
+      type: Type.OBJECT,
+      properties: {
+        expectedFormationHome: { type: Type.STRING },
+        expectedFormationAway: { type: Type.STRING },
+        last5FormationsHome: { type: Type.ARRAY, items: { type: Type.STRING } },
+        last5FormationsAway: { type: Type.ARRAY, items: { type: Type.STRING } },
+        instabilityPenaltyHome: { type: Type.NUMBER },
+        instabilityPenaltyAway: { type: Type.NUMBER },
+        stabilityRatingHome: { type: Type.NUMBER },
+        stabilityRatingAway: { type: Type.NUMBER },
+        analysis: { type: Type.STRING },
+      },
+      required: ["expectedFormationHome", "expectedFormationAway", "last5FormationsHome", "last5FormationsAway", "instabilityPenaltyHome", "instabilityPenaltyAway", "stabilityRatingHome", "stabilityRatingAway", "analysis"],
+    },
+    phase5TravelStress: {
+      type: Type.OBJECT,
+      properties: {
+        flightDistanceMilesHome: { type: Type.NUMBER },
+        flightDistanceMilesAway: { type: Type.NUMBER },
+        timeZonesCrossedHome: { type: Type.NUMBER },
+        timeZonesCrossedAway: { type: Type.NUMBER },
+        recoveryRestHoursHome: { type: Type.NUMBER },
+        recoveryRestHoursAway: { type: Type.NUMBER },
+        travelFatigueScoreHome: { type: Type.NUMBER },
+        travelFatigueScoreAway: { type: Type.NUMBER },
+        analysis: { type: Type.STRING },
+      },
+      required: ["flightDistanceMilesHome", "flightDistanceMilesAway", "timeZonesCrossedHome", "timeZonesCrossedAway", "recoveryRestHoursHome", "recoveryRestHoursAway", "travelFatigueScoreHome", "travelFatigueScoreAway", "analysis"],
+    },
+    phase6ClimateAdaptation: {
+      type: Type.OBJECT,
+      properties: {
+        matchdayTempCelsius: { type: Type.NUMBER },
+        matchdayHumidityPercent: { type: Type.NUMBER },
+        matchdayWindKmh: { type: Type.NUMBER },
+        climateDecayFactorHome: { type: Type.NUMBER },
+        climateDecayFactorAway: { type: Type.NUMBER },
+        adaptationProfileHome: { type: Type.STRING },
+        adaptationProfileAway: { type: Type.STRING },
+        analysis: { type: Type.STRING },
+      },
+      required: ["matchdayTempCelsius", "matchdayHumidityPercent", "matchdayWindKmh", "climateDecayFactorHome", "climateDecayFactorAway", "adaptationProfileHome", "adaptationProfileAway", "analysis"],
+    },
+    phase7StadiumIntelligence: {
+      type: Type.OBJECT,
+      properties: {
         altitudeMeters: { type: Type.NUMBER },
-        travelDistancePenaltyHome: { type: Type.STRING },
-        travelDistancePenaltyAway: { type: Type.STRING },
-        pitchFrictionTurf: { type: Type.STRING },
-        homeAdvantageMagnitude: { type: Type.STRING },
-        crowdBiasExpected: { type: Type.STRING },
-        environmentalAnalysis: { type: Type.STRING },
+        altitudeBallPhysicsAdjustment: { type: Type.STRING },
+        altitudeStaminaImpactHome: { type: Type.NUMBER },
+        altitudeStaminaImpactAway: { type: Type.NUMBER },
+        roofEnclosureState: { type: Type.STRING },
+        pitchSurfaceFriction: { type: Type.STRING },
+        stadiumAnalysis: { type: Type.STRING },
       },
-      required: ["weatherDetails", "weatherIcon", "altitudeMeters", "travelDistancePenaltyHome", "travelDistancePenaltyAway", "pitchFrictionTurf", "homeAdvantageMagnitude", "crowdBiasExpected", "environmentalAnalysis"],
+      required: ["altitudeMeters", "altitudeBallPhysicsAdjustment", "altitudeStaminaImpactHome", "altitudeStaminaImpactAway", "roofEnclosureState", "pitchSurfaceFriction", "stadiumAnalysis"],
     },
-    phase5SquadFatigueManager: {
+    phase8TournamentPsychology: {
       type: Type.OBJECT,
       properties: {
-        fatigueScoreHome: { type: Type.NUMBER, description: "Fatigue Score from 0 to 100" },
-        fatigueScoreAway: { type: Type.NUMBER, description: "Fatigue Score from 0 to 100" },
-        congestionAnalysis: { type: Type.STRING },
-        managerExperienceHome: { type: Type.STRING },
-        managerExperienceAway: { type: Type.STRING },
-        managerDecisionImpact: { type: Type.STRING },
-      },
-      required: ["fatigueScoreHome", "fatigueScoreAway", "congestionAnalysis", "managerExperienceHome", "managerExperienceAway", "managerDecisionImpact"],
-    },
-    phase6PsychologicalEngine: {
-      type: Type.OBJECT,
-      properties: {
+        competitionContext: { type: Type.STRING },
         motivationContextHome: { type: Type.STRING },
         motivationContextAway: { type: Type.STRING },
+        riskMitigationBehaviorHome: { type: Type.STRING },
+        riskMitigationBehaviorAway: { type: Type.STRING },
         derbyTensionLevel: { type: Type.STRING },
-        situationalStakes: { type: Type.STRING },
-        psychologicalEdge: { type: Type.STRING },
-        psychologicalAnalysis: { type: Type.STRING },
+        behavioralLogicAnalysis: { type: Type.STRING },
       },
-      required: ["motivationContextHome", "motivationContextAway", "derbyTensionLevel", "situationalStakes", "psychologicalEdge", "psychologicalAnalysis"],
+      required: ["competitionContext", "motivationContextHome", "motivationContextAway", "riskMitigationBehaviorHome", "riskMitigationBehaviorAway", "derbyTensionLevel", "behavioralLogicAnalysis"],
     },
-    phase7MatchdayValidation: {
-      type: Type.OBJECT,
-      properties: {
-        expectedVsConfirmedHome: { type: Type.STRING },
-        expectedVsConfirmedAway: { type: Type.STRING },
-        lineupDisruptionScoreHome: { type: Type.NUMBER, description: "Rating and xG deduction impact score e.g. -4.5" },
-        lineupDisruptionScoreAway: { type: Type.NUMBER },
-        confirmedTacticalShiftHome: { type: Type.STRING },
-        confirmedTacticalShiftAway: { type: Type.STRING },
-        suspensionsAndLateScrapes: { type: Type.STRING },
-        personnelDeductionAnalysis: { type: Type.STRING, description: "e.g. Top scorer out = Attacking drops 87 -> 76" },
-        validationVerdict: { type: Type.STRING },
-      },
-      required: ["expectedVsConfirmedHome", "expectedVsConfirmedAway", "lineupDisruptionScoreHome", "lineupDisruptionScoreAway", "confirmedTacticalShiftHome", "confirmedTacticalShiftAway", "suspensionsAndLateScrapes", "personnelDeductionAnalysis", "validationVerdict"],
-    },
-    phase8MonteCarlo: {
+    phase9MonteCarlo: {
       type: Type.OBJECT,
       properties: {
         adjustedXgHome: { type: Type.NUMBER },
         adjustedXgAway: { type: Type.NUMBER },
-        winProbabilityHome: { type: Type.NUMBER, description: "Probability out of 100" },
+        winProbabilityHome: { type: Type.NUMBER },
         winProbabilityDraw: { type: Type.NUMBER },
         winProbabilityAway: { type: Type.NUMBER },
         cleanSheetProbHome: { type: Type.NUMBER },
@@ -195,120 +260,102 @@ const soccerPredictionSchema = {
           items: {
             type: Type.OBJECT,
             properties: {
-              score: { type: Type.STRING, description: "e.g. '2 - 1'" },
+              score: { type: Type.STRING },
               probability: { type: Type.NUMBER },
             },
             required: ["score", "probability"],
           },
         },
-        predictionConfidenceScore: { type: Type.NUMBER, description: "Prediction Confidence rating (0-100)" },
+        predictionConfidenceScore: { type: Type.NUMBER },
         predictionConfidenceExplanation: { type: Type.STRING },
-        simulationConfidenceInterval: { type: Type.STRING },
+        dataVolatilityIndex: { type: Type.STRING },
       },
-      required: [
-        "adjustedXgHome",
-        "adjustedXgAway",
-        "winProbabilityHome",
-        "winProbabilityDraw",
-        "winProbabilityAway",
-        "cleanSheetProbHome",
-        "cleanSheetProbAway",
-        "scorelineProjections",
-        "predictionConfidenceScore",
-        "predictionConfidenceExplanation",
-        "simulationConfidenceInterval"
-      ],
+      required: ["adjustedXgHome", "adjustedXgAway", "winProbabilityHome", "winProbabilityDraw", "winProbabilityAway", "cleanSheetProbHome", "cleanSheetProbAway", "scorelineProjections", "predictionConfidenceScore", "predictionConfidenceExplanation", "dataVolatilityIndex"],
     },
-    phase9ValueBetDetection: {
+    phase10ValueBetDetection: {
       type: Type.OBJECT,
       properties: {
-        marketOddsHome: { type: Type.STRING, description: "Real market odds e.g. +220" },
-        marketOddsDraw: { type: Type.STRING },
-        marketOddsAway: { type: Type.STRING },
-        modelOddsHome: { type: Type.STRING, description: "STRATOS derived fair odds e.g. +145" },
-        modelOddsDraw: { type: Type.STRING },
-        modelOddsAway: { type: Type.STRING },
-        edgeHome: { type: Type.NUMBER, description: "Difference percent eg +10.5%" },
-        edgeDraw: { type: Type.NUMBER },
-        edgeAway: { type: Type.NUMBER },
-        edgeVerdict: { type: Type.STRING, description: "Must be: 'VALUE OPPORTUNITY' or 'MARKET ALIGNED'" },
+        calculatedOddsHome: { type: Type.STRING },
+        calculatedOddsDraw: { type: Type.STRING },
+        calculatedOddsAway: { type: Type.STRING },
+        bookmakerOddsHome: { type: Type.STRING },
+        bookmakerOddsDraw: { type: Type.STRING },
+        bookmakerOddsAway: { type: Type.STRING },
+        valueMarginHome: { type: Type.NUMBER },
+        valueMarginDraw: { type: Type.NUMBER },
+        valueMarginAway: { type: Type.NUMBER },
+        edgeVerdict: { type: Type.STRING, description: "Must be: '⚠️ NO EDGE DETECTED - SKIP MATCH' or '🟢 VALUE OPPORTUNITY'" },
+        targetMarketSelection: { type: Type.STRING },
         exactDiscrepancyExplanation: { type: Type.STRING },
         valueRecommendation: { type: Type.STRING },
       },
-      required: ["marketOddsHome", "marketOddsDraw", "marketOddsAway", "modelOddsHome", "modelOddsDraw", "modelOddsAway", "edgeHome", "edgeDraw", "edgeAway", "edgeVerdict", "exactDiscrepancyExplanation", "valueRecommendation"],
+      required: ["calculatedOddsHome", "calculatedOddsDraw", "calculatedOddsAway", "bookmakerOddsHome", "bookmakerOddsDraw", "bookmakerOddsAway", "valueMarginHome", "valueMarginDraw", "valueMarginAway", "edgeVerdict", "targetMarketSelection", "exactDiscrepancyExplanation", "valueRecommendation"],
     },
-    stratosV2: {
+    summaryDataBlocks: {
       type: Type.OBJECT,
       properties: {
-        matchStressReport: {
+        matchStressAndContext: {
           type: Type.OBJECT,
           properties: {
-            venueName: { type: Type.STRING },
-            localTime: { type: Type.STRING },
-            roofStatus: { type: Type.STRING },
-            environmentalStressIndex: { type: Type.STRING },
-            temperatureCelsius: { type: Type.NUMBER },
-            humidityPercentage: { type: Type.NUMBER },
-            solarRadiation: { type: Type.STRING },
-            airQualityIndex: { type: Type.STRING },
-            altitudeMeters: { type: Type.NUMBER },
-            haiHomeScore: { type: Type.NUMBER },
-            haiHomePerformanceDrop: { type: Type.NUMBER },
-            haiAwayScore: { type: Type.NUMBER },
-            haiAwayPerformanceDrop: { type: Type.NUMBER },
-            mostAffectedPositions: { type: Type.ARRAY, items: { type: Type.STRING } },
-            substituteImportanceAnalysis: { type: Type.STRING },
-            travelDistanceMilesHome: { type: Type.NUMBER },
-            travelDistanceMilesAway: { type: Type.NUMBER },
-            timeZoneDeltaHome: { type: Type.NUMBER },
-            timeZoneDeltaAway: { type: Type.NUMBER },
-            restDaysHome: { type: Type.NUMBER },
-            restDaysAway: { type: Type.NUMBER },
-            benchSustainabilityScoreHome: { type: Type.NUMBER },
-            benchSustainabilityScoreAway: { type: Type.NUMBER }
+            genderSlate: { type: Type.STRING },
+            competitionContext: { type: Type.STRING },
+            esiIndex: { type: Type.STRING },
+            travelFatigueScore: { type: Type.STRING }
           },
-          required: [
-            "venueName", "localTime", "roofStatus", "environmentalStressIndex",
-            "temperatureCelsius", "humidityPercentage", "solarRadiation", "airQualityIndex",
-            "altitudeMeters", "haiHomeScore", "haiHomePerformanceDrop", "haiAwayScore", "haiAwayPerformanceDrop",
-            "mostAffectedPositions", "substituteImportanceAnalysis", "travelDistanceMilesHome", "travelDistanceMilesAway",
-            "timeZoneDeltaHome", "timeZoneDeltaAway", "restDaysHome", "restDaysAway", "benchSustainabilityScoreHome", "benchSustainabilityScoreAway"
-          ]
+          required: ["genderSlate", "competitionContext", "esiIndex", "travelFatigueScore"]
         },
-        valueBetOverlay: {
+        squadResilienceProfile: {
           type: Type.OBJECT,
           properties: {
-            targetMarket: { type: Type.STRING },
-            edgePercentage: { type: Type.NUMBER },
-            calculatedOdds: { type: Type.STRING },
-            marketOdds: { type: Type.STRING },
-            verdict: { type: Type.STRING }
+            squadAvailabilityDelta: { type: Type.STRING },
+            formationStabilityRating: { type: Type.STRING }
           },
-          required: ["targetMarket", "edgePercentage", "calculatedOdds", "marketOdds", "verdict"]
+          required: ["squadAvailabilityDelta", "formationStabilityRating"]
+        },
+        stratosPredictionMatrix: {
+          type: Type.OBJECT,
+          properties: {
+            homeDrawAwayPct: { type: Type.STRING },
+            top3Scorelines: { type: Type.ARRAY, items: { type: Type.STRING } },
+            predictionConfidenceScorePct: { type: Type.STRING }
+          },
+          required: ["homeDrawAwayPct", "top3Scorelines", "predictionConfidenceScorePct"]
+        },
+        valueBetDetectionOverlay: {
+          type: Type.OBJECT,
+          properties: {
+            stratosOddsVsBookmakerOdds: { type: Type.STRING },
+            verdict: { type: Type.STRING },
+            targetMarketSelection: { type: Type.STRING }
+          },
+          required: ["stratosOddsVsBookmakerOdds", "verdict", "targetMarketSelection"]
         }
       },
-      required: ["matchStressReport", "valueBetOverlay"]
-    }
+      required: ["matchStressAndContext", "squadResilienceProfile", "stratosPredictionMatrix", "valueBetDetectionOverlay"]
+    },
+    cognitiveNarrative: { type: Type.STRING, description: "Highly polished Markdown document translating detailed sports science, environmental metrics, referee styles, motivation levels, and value betting intelligence into elite human-readable summaries." }
   },
   required: [
     "matchInfo",
     "matchdayContext",
     "explainabilityLayer",
     "whyNotEngine",
-    "phase1PowerRating",
-    "phase2FormMomentum",
-    "phase3TacticalEngine",
-    "phase4VenueEnvironment",
-    "phase5SquadFatigueManager",
-    "phase6PsychologicalEngine",
-    "phase7MatchdayValidation",
-    "phase8MonteCarlo",
-    "phase9ValueBetDetection",
-    "stratosV2"
+    "phase1EloStrength",
+    "phase2TacticalMatchup",
+    "phase3SquadAvailability",
+    "phase4FormationStability",
+    "phase5TravelStress",
+    "phase6ClimateAdjustment",
+    "phase7StadiumIntelligence",
+    "phase8TournamentPsychology",
+    "phase9MonteCarlo",
+    "phase10ValueBetDetection",
+    "summaryDataBlocks",
+    "cognitiveNarrative"
   ]
 };
 
-// Realistic mock data fallback for key matches to ensure seamless UI and exact 9-Phase alignment
+// Realistic mock data fallback for key matches to ensure seamless UI and exact 10-Phase alignment
 function getMockPrediction(
   home: string, 
   away: string,
@@ -323,787 +370,383 @@ function getMockPrediction(
   const normalizedHome = home.toLowerCase();
   const normalizedAway = away.toLowerCase();
 
-  // Determine active venue parameters
+  const isWomen = normalizedHome.includes("women") || normalizedAway.includes("women");
+  const genderSlate = isWomen ? "Women's Association" : "Men's Association";
+
   const activeVenue = venue || "Soldier Field, Chicago, IL";
-  const normalizedVenue = activeVenue.toLowerCase();
   const activeKickoff = kickoffTime || "15:00";
   const moisture = pitchMoisture || "Standard";
   const temp = matchTemperature !== undefined ? matchTemperature : 22;
 
-  // Host city detection for mathematical overrides
-  const isMexicoCity = normalizedVenue.includes("mexico city") || normalizedVenue.includes("azteca");
-  const isGuadalajara = normalizedVenue.includes("guadalajara") || normalizedVenue.includes("akron") || normalizedVenue.includes("chivas");
+  // Altitude detection
+  const isMexicoCity = activeVenue.toLowerCase().includes("mexico city") || activeVenue.toLowerCase().includes("azteca");
+  const isGuadalajara = activeVenue.toLowerCase().includes("guadalajara") || activeVenue.toLowerCase().includes("akron");
   const isHighAltitude = isMexicoCity || isGuadalajara;
   const altitudeMeters = isMexicoCity ? 2240 : isGuadalajara ? 1566 : 140;
 
-  const isHouston = normalizedVenue.includes("houston") || normalizedVenue.includes("nrg");
-  const isMiami = normalizedVenue.includes("miami") || normalizedVenue.includes("hard rock");
-  const isKansasCity = normalizedVenue.includes("kansas city") || normalizedVenue.includes("arrowhead");
-  const isMonterrey = normalizedVenue.includes("monterrey") || normalizedVenue.includes("bbva");
-  const isOpenAirHeatCity = isHouston || isMiami || isKansasCity || isMonterrey;
+  // Climate Control Match
+  const isClimateControlled = activeVenue.toLowerCase().includes("dallas") || activeVenue.toLowerCase().includes("at&t") || activeVenue.toLowerCase().includes("atlanta") || activeVenue.toLowerCase().includes("mercedes");
 
-  const kickoffHour = parseInt(activeKickoff.split(":")[0]) || 15;
-  const isBefore6PM = kickoffHour < 18;
-  const isHeatHumidityImpacted = isOpenAirHeatCity && isBefore6PM;
-
-  const isDallas = normalizedVenue.includes("dallas") || normalizedVenue.includes("at&t");
-  const isAtlanta = normalizedVenue.includes("atlanta") || normalizedVenue.includes("mercedes-benz") || normalizedVenue.includes("mercedes");
-  const isClimateControlled = isDallas || isAtlanta;
-
-  const isUSAvsGER = (normalizedHome.includes("usa") && normalizedAway.includes("germ")) || 
-                     (normalizedHome.includes("germ") && normalizedAway.includes("usa")) ||
-                     (normalizedHome.includes("united states") && normalizedAway.includes("germany"));
-
-  const isUSAWvsGERW = (normalizedHome.includes("usa women") && normalizedAway.includes("germany women")) ||
-                       (normalizedHome.includes("germany women") && normalizedAway.includes("usa women"));
-
-  // If custom inputs, World Cup host venues, pitch moisture, or temperature are triggered, use this highly dynamic environmental math engine
-  if (isHighAltitude || isClimateControlled || isHeatHumidityImpacted || venue || kickoffTime || pitchMoisture || matchTemperature !== undefined) {
-    let homeRating = isUSAWvsGERW ? 91.2 : isUSAvsGER ? 83.4 : Math.min(95, Math.max(70, home.length * 1.5 + 68));
-    let awayRating = isUSAWvsGERW ? 86.8 : isUSAvsGER ? 88.6 : Math.min(93, Math.max(68, away.length * 1.5 + 66));
-    
-    let recentFormHome = ["W", "D", "W", "L", "W"];
-    let recentFormAway = ["W", "W", "D", "L", "D"];
-
-    let baseFatigueHome = 30;
-    let baseFatigueAway = 35;
-
-    let homePpda = 8.4;
-    let awayPpda = 10.2;
-
-    let baseAdjustedXgHome = 1.62;
-    let baseAdjustedXgAway = 1.22;
-
-    let climateAnalysis = "Standard climate, mild temperature, optimal friction index modeled.";
-    let environmentalAdjustments = "Mild conditions, low humidity. No major weather friction metrics modeled.";
-    let venueStatusStr = "Standard League Match (Mode A)";
-    let pitchFrictionTurf = "Densely mowed dry natural turf: fast ball rolls, low muscle wear risk";
-
-    if (isHighAltitude) {
-      venueStatusStr = "Tournament / Neutral Venue (Mode B) [Altitude State]";
-      climateAnalysis = `High Altitude Match at ${altitudeMeters}m above sea level. Ball physics adjusted for thin air structure (+5% long-range shooting accuracy).`;
-      
-      if (!altitudeCampHome) baseFatigueHome += 12;
-      if (!altitudeCampAway) baseFatigueAway += 12;
-      
-      environmentalAdjustments = `Altitude: ${altitudeMeters}m. ${
-        !altitudeCampHome ? `Home team progressive altitude stamina penalty applied (-12%). ` : `Home team held high-altitude camp (>14 days), acclimatized. `
-      }${
-        !altitudeCampAway ? `Away team progressive altitude stamina penalty applied (-12%). ` : `Away team held high-altitude camp (>14 days), acclimatized. `
-      }Thin air physics increases long-range shooting success metrics by +5%.`;
-    } else if (isClimateControlled) {
-      venueStatusStr = "Tournament / Neutral Venue (Mode B) [Climate Controlled]";
-      climateAnalysis = "Indoor air-conditioned climate control bypasses external summer heat penalty entirely. Turf characteristics adjusted for artificial surface friction.";
-      pitchFrictionTurf = "High friction artificial weave: rating 1.14x, high muscle strain risk, but inside 100% climate-controlled air flow.";
-      environmentalAdjustments = "Indoor climate-controlled temperature bypassed exterior summer heat constraints. Dry artificial turf friction index active.";
-    } else if (isHeatHumidityImpacted) {
-      venueStatusStr = "Tournament / Neutral Venue (Mode B) [Heat/Humidity Alert]";
-      
-      homePpda = parseFloat((homePpda * 1.15).toFixed(1));
-      awayPpda = parseFloat((awayPpda * 1.15).toFixed(1));
-      
-      baseAdjustedXgHome = parseFloat((baseAdjustedXgHome * 0.85).toFixed(2));
-      baseAdjustedXgAway = parseFloat((baseAdjustedXgAway * 0.85).toFixed(2));
-      
-      climateAnalysis = `Extreme Heat / Humidity Alert (Kickoff ${activeKickoff} before 6 PM). Slower pacing in progress: Pressing Intensity (PPDA) reduced by 15% and Poisson Expected Goals reduced by 15% for both teams.`;
-      environmentalAdjustments = `Severe summer temperature index. Pressing intensity (PPDA) scaled down by 15%, reducing the physical compression bounds. xG totals lowered by 15% to adjust for slower pacing.`;
-    }
-
-    // 2. Pitch Moisture Adjustments (Slick/Wet vs Sticky/Dry)
-    if (moisture === "Wet/Raining") {
-      pitchFrictionTurf = `Slick/Wet Turf (Raining): Ball Velocity boosted by +15%. Fast ball glide, short-passing profiles enhanced. Traction penalty (-8%) applied to explosive dribblers.`;
-      homeRating = parseFloat((homeRating + 1.5).toFixed(1));
-      awayRating = parseFloat((awayRating + 1.5).toFixed(1));
-      environmentalAdjustments += " Slick/Wet turf: Ball velocity +15%. High-possession short-passing tactical styles gain velocity-precision advantage. -8% Agility penalty applied to directional dribblers.";
-    } else if (moisture === "Dry/Long Grass") {
-      pitchFrictionTurf = `Sticky/Dry Turf (Long Grass): Passing fluidity decreased by 12%. Transition styles penalised by rough turf drag. Compact Low-Blocks gain +7% defensive stabilization.`;
-      baseAdjustedXgHome = parseFloat((baseAdjustedXgHome * 0.90).toFixed(2));
-      baseAdjustedXgAway = parseFloat((baseAdjustedXgAway * 0.90).toFixed(2));
-      environmentalAdjustments += " Dry/Long Grass turf: Passing fluidity decreased by 12%. Fast-transition styles restricted by grass drag. Compact Low-Blocks gain +7% defensive stabilization boost.";
-    }
-
-    // 3. Climate Profiling: European nations playing in >30°C temperature
-    const euroCountries = ["germany", "england", "spain", "italy", "france", "belgium", "portugal", "sweden", "netherlands", "norway"];
-    const isHomeEuro = euroCountries.some(country => normalizedHome.includes(country));
-    const isAwayEuro = euroCountries.some(country => normalizedAway.includes(country));
-
-    let euroOriginNote = "";
-    if (temp > 30) {
-      if (isHomeEuro) {
-        homeRating = parseFloat((homeRating - 2.0).toFixed(1));
-        baseAdjustedXgHome = parseFloat((baseAdjustedXgHome * 0.90).toFixed(2));
-        euroOriginNote += `${home} (European Squad playing in >30°C heat) receives automatic baseline intensity downscaling. `;
-      }
-      if (isAwayEuro) {
-        awayRating = parseFloat((awayRating - 2.0).toFixed(1));
-        baseAdjustedXgAway = parseFloat((baseAdjustedXgAway * 0.90).toFixed(2));
-        euroOriginNote += `${away} (European Squad playing in >30°C heat) receives automatic baseline intensity downscaling. `;
-      }
-    }
-
-    // 4. Heat Fatigue & Pressing Drop-off
-    if (temp > 30) {
-      baseFatigueHome = parseFloat((baseFatigueHome * 1.45).toFixed(1));
-      baseFatigueAway = parseFloat((baseFatigueAway * 1.45).toFixed(1));
-
-      let pressNoticeHome = "";
-      let pressNoticeAway = "";
-      if (homePpda < 9.0) {
-        pressNoticeHome = "Home High-Pressing profile squad suffers 1.5x sharper drop-off in recovery runs after 60'.";
-        baseAdjustedXgAway = parseFloat((baseAdjustedXgAway * 1.08).toFixed(2));
-      }
-      if (awayPpda < 9.0) {
-        pressNoticeAway = "Away High-Pressing profile squad suffers 1.5x sharper drop-off in recovery runs after 60'.";
-        baseAdjustedXgHome = parseFloat((baseAdjustedXgHome * 1.08).toFixed(2));
-      }
-
-      climateAnalysis = `Extreme Heat Environment (${temp}°C / ${Math.round(temp * 1.8 + 32)}°F). ${euroOriginNote}${pressNoticeHome} ${pressNoticeAway}`;
-    } else {
-      climateAnalysis = `Favorable climate calibrated at ${temp}°C / ${Math.round(temp * 1.8 + 32)}°F. ${euroOriginNote}`;
-    }
-
-    // 5. Bench Dependency & Lineup validation
-    let validationVerdictText = "High lineup confidence metrics recorded.";
-    if (temp > 30) {
-      validationVerdictText = `High heat environment increase. Substitute & depth weight increased (+1.2x multiplier to Phase 7 parameter) - bench players dictate late 60-90' probability bounds.`;
-    }
-
-    const margin = baseAdjustedXgHome - baseAdjustedXgAway;
-    let winProbHome = Math.round(33 + margin * 30);
-    let winProbAway = Math.round(33 - margin * 30);
-    let winProbDraw = Math.round(100 - winProbHome - winProbAway);
-
-    if (winProbHome < 10) winProbHome = 10;
-    if (winProbAway < 10) winProbAway = 10;
-    if (winProbDraw < 10) winProbDraw = 10;
-    const sum = winProbHome + winProbDraw + winProbAway;
-    if (sum !== 100) {
-      winProbHome += (100 - sum);
-    }
-
-    return {
-      matchInfo: {
-        homeTeam: home,
-        awayTeam: away,
-        venue: activeVenue,
-        surface: isClimateControlled ? "Artificial Grass (Turf)" : "Natural Grass",
-        date: "June 6, 2026"
-      },
-      matchdayContext: {
-        venueStatus: venueStatusStr,
-        environmentalAdjustments: environmentalAdjustments + (euroOriginNote ? " " + euroOriginNote : ""),
-        venueInfluenceIndex: `Match scheduled at local kickoff ${activeKickoff} with Pitch Moisture setting "${moisture}". Venue State environmental calibrations applied securely.`
-      },
-      explainabilityLayer: {
-        positiveDrivers: [
-          `+ Physical baseline adaptation coefficient (+8%)`,
-          isHighAltitude ? `+ Long-range shooting capability (+5% due to ball flight physics)` : `+ Standard tactical structure integration (+5%)`,
-          moisture === "Wet/Raining" ? `+ Slick wet turf ball glide velocity (+15% speed factor)` : `+ Central block compactness (+4%)`,
-          moisture === "Dry/Long Grass" ? `+ Low-block defensive stabilization boost (+7% defensive hold)` : `+ Technical spacing index (+3%)`
-        ],
-        negativeFactors: [
-          isHighAltitude && (!altitudeCampHome || !altitudeCampAway) ? `- Altitude hypobaric oxygen penalty active (-12% Stamina)` : `- Standard travel fatigue factor (-2%)`,
-          isHeatHumidityImpacted ? `- Summer thermal exhaustion threshold reached, slowing block pace (-15%)` : `- Baseline residual muscle fatigue (-3%)`,
-          moisture === "Dry/Long Grass" ? `- Long grass friction passing speed decay (-12% fluidity)` : `- General air friction (-1%)`,
-          moisture === "Wet/Raining" ? `- Slick pitch traction penalty (-8% agility for fast dribblers)` : `- Normal grass wear (-1%)`
-        ]
-      },
-      whyNotEngine: {
-        failureConditions: [
-          "Unplanned early referee red card breaks structural formation models.",
-          "Opposing side initiates low-block stalling, freezing vertical overlaps.",
-          "Sudden extreme dehydration or late muscle pull among critical defenders."
-        ]
-      },
-      phase1PowerRating: {
-        homeRating: homeRating,
-        awayRating: awayRating,
-        squadDepthValueHome: `$${Math.round(homeRating * 3)}M Squad Valuation`,
-        squadDepthValueAway: `$${Math.round(awayRating * 3.2)}M Squad Valuation`,
-        historicalXgTrendHome: 1.45,
-        historicalXgTrendAway: 1.28,
-        analysis: "Base strength differential favors the rating profiles in place, before context modifiers adjust final Poisson scorelines."
-      },
-      phase2FormMomentum: {
-        recentFormHome: recentFormHome,
-        recentFormAway: recentFormAway,
-        pointsDivergenceHome: "+0.18 xPTS (Healthy momentum alignment)",
-        pointsDivergenceAway: "+0.09 xPTS (Cohesive tactical execution)",
-        cleanSheetTrendHome: "2 clean sheets in last 5",
-        cleanSheetTrendAway: "1 clean sheet in last 5",
-        analysis: "Steady technical forms reported."
-      },
-      phase3TacticalEngine: {
-        homeFormation: "4-3-3",
-        awayFormation: "4-2-3-1",
-        homeTacticalStyle: moisture === "Wet/Raining" ? "High-tempo possession-passing counter-press (slick conditions)" : "Gegenpress with elite transition width",
-        awayTacticalStyle: moisture === "Dry/Long Grass" ? "Dense low-block counter defense (slowing grass transition)" : "Slow direct build-up utilizing central holdup",
-        homePpda: homePpda,
-        awayPpda: awayPpda,
-        formationStabilityScoreHome: moisture === "Dry/Long Grass" ? 93 : 86,
-        formationStabilityScoreAway: moisture === "Dry/Long Grass" ? 89 : 82,
-        transitionVulnerabilityHome: "Vulnerable to rapid overlapping counters during wide transitions",
-        transitionVulnerabilityAway: "Horizontal spaces exposed behind flat midfield pivots",
-        matchupAnalysis: `Tactical intensity adjusted. ${moisture === "Wet/Raining" ? "Short-passing possession style gets 15% velocity speedup." : moisture === "Dry/Long Grass" ? "Passing speed holds a -12% drag, favoring low block formations." : "Pressing efficiency is structured to adapt directly to physical factors."}`
-      },
-      phase4VenueEnvironment: {
-        weatherDetails: isHeatHumidityImpacted ? `Extreme Summer Heat, ${temp}°C / ${Math.round(temp * 1.8 + 32)}°F, High Humidity` : isHighAltitude ? `Cool dry air, ${temp}°C, 35% humidity` : `Calibrated conditions at ${temp}°C`,
-        weatherIcon: temp > 30 ? "sun" : isHighAltitude ? "cloud" : moisture === "Wet/Raining" ? "rain" : "sun",
-        altitudeMeters: altitudeMeters,
-        travelDistancePenaltyHome: "None (Fully acclimatized)",
-        travelDistancePenaltyAway: "Low (Sub-3 hour transit line)",
-        pitchFrictionTurf: pitchFrictionTurf,
-        homeAdvantageMagnitude: "+0.25 xG home climate advantage",
-        crowdBiasExpected: "Estimated 60-40 regional cohort layout",
-        environmentalAnalysis: climateAnalysis
-      },
-      phase5SquadFatigueManager: {
-        fatigueScoreHome: baseFatigueHome,
-        fatigueScoreAway: baseFatigueAway,
-        congestionAnalysis: `Team Fatigue calibrated. ${temp > 30 ? `Heat-induced accelerating fatigue active (1.45x multiplier applied).` : `Congestion within normal bounds.`} ${isHighAltitude ? `Altitude fatigue penalty applied (+12% to un-acclimatized squads).` : ``}`,
-        managerExperienceHome: "Experienced National Coach (85 rating)",
-        managerExperienceAway: "Experienced National Coach (84 rating)",
-        managerDecisionImpact: temp > 30 ? "High-heat expands tactical substitute management impact. Sub bench quality becomes key driver of the late game." : "Stable tactical profiles lower the model variance limits."
-      },
-      phase6PsychologicalEngine: {
-        motivationContextHome: "Intense desire to claim local World Cup fixture.",
-        motivationContextAway: "Extremely motivated to secure points for bracket stability.",
-        derbyTensionLevel: "LOW",
-        situationalStakes: "World Cup 10k simulations round. Elite tier status matches.",
-        psychologicalEdge: "Equal motivation split",
-        psychologicalAnalysis: "Extremely high professional focus and career pride factors active."
-      },
-      phase7MatchdayValidation: {
-        expectedVsConfirmedHome: `CONFIRMED: Normal Starting XI. Pre-match fitness checks passed. ${temp > 30 ? "High depth roster readiness validated for late physical exhaustion." : ""}`,
-        expectedVsConfirmedAway: `CONFIRMED: Standard squad starts. Roster depth is complete. ${temp > 30 ? "Substitute benches will play 1.2x larger weight in simulation outcomes." : ""}`,
-        lineupDisruptionScoreHome: -0.5,
-        lineupDisruptionScoreAway: -0.6,
-        confirmedTacticalShiftHome: moisture === "Wet/Raining" ? "Short flat passing focus adjusted." : "None reported.",
-        confirmedTacticalShiftAway: moisture === "Dry/Long Grass" ? "Deeper compact alignment deployed." : "None reported.",
-        suspensionsAndLateScrapes: "None detected.",
-        personnelDeductionAnalysis: "Standard XI bodes for low disruption scores across model parameters.",
-        validationVerdict: validationVerdictText
-      },
-      phase8MonteCarlo: {
-        adjustedXgHome: baseAdjustedXgHome,
-        adjustedXgAway: baseAdjustedXgAway,
-        winProbabilityHome: winProbHome,
-        winProbabilityDraw: winProbDraw,
-        winProbabilityAway: winProbAway,
-        cleanSheetProbHome: Math.round(15 + baseAdjustedXgAway * 8),
-        cleanSheetProbAway: Math.round(15 + baseAdjustedXgHome * 8),
-        scorelineProjections: [
-          { score: `${Math.ceil(baseAdjustedXgHome)} - ${Math.floor(baseAdjustedXgAway)}`, probability: 15.6 },
-          { score: "1 - 1", probability: 12.8 },
-          { score: `${Math.floor(baseAdjustedXgHome)} - ${Math.ceil(baseAdjustedXgAway)}`, probability: 10.4 },
-          { score: `${Math.ceil(baseAdjustedXgHome)} - ${Math.ceil(baseAdjustedXgAway)}`, probability: 8.9 }
-        ],
-        predictionConfidenceScore: 84,
-        predictionConfidenceExplanation: `Confidence rated high based on clean starting lineups. ${temp > 30 ? "High-heat substitute manager algorithms successfully calibrated for the 60'-90' curve." : ""}`,
-        simulationConfidenceInterval: simulationMode === "tier1" ? "Poisson curve calculated across fast-pass 500 macro-assessment iterations." : "Poisson curve calculated across 10,000 algorithmic seed iterations."
-      },
-      phase9ValueBetDetection: {
-        marketOddsHome: winProbHome > 45 ? "-110" : "+180",
-        marketOddsDraw: "+260",
-        marketOddsAway: winProbAway > 45 ? "-105" : "+210",
-        modelOddsHome: `+${Math.round((100 / winProbHome - 1) * 100)}`,
-        modelOddsDraw: `+${Math.round((100 / winProbDraw - 1) * 100)}`,
-        modelOddsAway: `+${Math.round((100 / winProbAway - 1) * 100)}`,
-        edgeHome: winProbHome > 40 ? 4.5 : 1.2,
-        edgeDraw: 0.8,
-        edgeAway: winProbAway > 40 ? 5.2 : -2.1,
-        edgeVerdict: "VALUE OPPORTUNITY",
-        exactDiscrepancyExplanation: `STRATOS isolates custom environmental parameters (${
-          isHighAltitude ? "Altitude Ball Mechanics + Fatigue" : temp > 30 ? "Acc Fatigue + Substitute Depth" : moisture !== "Standard" ? `Pitch Moisture: ${moisture}` : "Indoor Climate Bypassing Heat"
-        }) which the general public markets under-represent.`,
-        valueRecommendation: "Optimal pick: standard Moneyline selection or Draw No Bet representing substantial value."
-      }
-    };
+  // Base ELO and strength
+  let baseHomeElo = isWomen ? 91.2 : 83.4;
+  let baseAwayElo = isWomen ? 86.8 : 88.6;
+  if (!normalizedHome.includes("usa") && !normalizedHome.includes("united states") && !normalizedHome.includes("germany")) {
+    baseHomeElo = Math.min(95, Math.max(70, home.length * 1.5 + 68));
+    baseAwayElo = Math.min(93, Math.max(68, away.length * 1.5 + 66));
   }
 
-  if (isUSAWvsGERW) {
-    return {
-      matchInfo: {
-        homeTeam: "USA Women",
-        awayTeam: "Germany Women",
-        venue: "Soldier Field, Chicago, IL",
-        surface: "Natural Grass",
-        date: "Today"
-      },
-      matchdayContext: {
-        venueStatus: "Standard League Match (Mode A)",
-        environmentalAdjustments: "Mild mid-west conditions (70°F), low humidity (50%). No major weather friction metrics modeled. Slight 3.5h travel fatigue for travelers.",
-        venueInfluenceIndex: "Home turf bias is substantial (+12% support factor over historical neutral standards). Direct high crowd volume expected."
-      },
-      explainabilityLayer: {
-        positiveDrivers: [
-          "+ Attacking xG Advantage due to Sophia Smith's transition velocity (+14%)",
-          "+ Tactical high wingoverload potential against German fullbacks (+8%)",
-          "+ Crowd Motivation Factor under active match tension (+5%)"
-        ],
-        negativeFactors: [
-          "- Naomi Girma slight lineup rest validation (-3%)",
-          "- Squad middle congestion fatigue index (-2%)"
-        ]
-      },
-      whyNotEngine: {
-        failureConditions: [
-          "Germany Women establishes absolute direct midfield dominance using a double pivot block, pinning America's transitions.",
-          "Early structural red card or structural penalty conceding momentum.",
-          "Extreme finishing underperformance (xG wastefulness of central forwards)."
-        ]
-      },
-      phase1PowerRating: {
-        homeRating: 91.2,
-        awayRating: 86.8,
-        squadDepthValueHome: "$15.5M Pool. Unrivaled depth across forward lines with immense fresh paces.",
-        squadDepthValueAway: "$12.2M Pool. Well-structured but aging defensive midfield core.",
-        historicalXgTrendHome: 2.15,
-        historicalXgTrendAway: 1.58,
-        analysis: "USWNT holds the baseline dominance rating from recent undefeated streaks, while Germany Women is in a transitional tactical rebuilding phase."
-      },
-      phase2FormMomentum: {
-        recentFormHome: ["W", "W", "W", "W", "D"],
-        recentFormAway: ["W", "L", "W", "D", "W"],
-        pointsDivergenceHome: "+0.45 xPTS (Highly positive form alignment)",
-        pointsDivergenceAway: "+0.08 xPTS (Steady momentum but struggling to secure late-stage clinical finishes)",
-        cleanSheetTrendHome: "3 clean sheets in last 5 matches",
-        cleanSheetTrendAway: "2 clean sheets in last 5 matches",
-        analysis: "USA enters fully customized to altitude and local hydration guidelines, whereas Germany played highly energy-sapping fixtures in Europe."
-      },
-      phase3TacticalEngine: {
-        homeFormation: "4-2-3-1",
-        awayFormation: "4-3-3",
-        homeTacticalStyle: "Gegenpress with elite overlapping fullbacks, forcing wide channel turnovers",
-        awayTacticalStyle: "Slow direct build-up utilizing central holdup switches",
-        homePpda: 8.1,
-        awayPpda: 10.4,
-        formationStabilityScoreHome: 92,
-        formationStabilityScoreAway: 78,
-        transitionVulnerabilityHome: "High line leaves horizontal spaces behind defensive line vulnerable to speed counters",
-        transitionVulnerabilityAway: "Narrow defending leaves outside flanks exposed to rapid dynamic overlaps",
-        matchupAnalysis: "USA's extremely low PPDA indicates high disrupting press. High tactical stability score for USA (92) means high predictability."
-      },
-      phase4VenueEnvironment: {
-        weatherDetails: "Clear afternoon skies, 70°F, 50% humidity. Light breeze.",
-        weatherIcon: "sun",
-        altitudeMeters: 179,
-        travelDistancePenaltyHome: "None (Fully acclimatized domestic camp)",
-        travelDistancePenaltyAway: "Moderate (Transatlantic trip, -6 hours jet lag adjustment)",
-        pitchFrictionTurf: "Densely mowed dry natural turf: fast ball rolls, low muscle wear risk",
-        homeAdvantageMagnitude: "+0.35 xG based on sold-out local stadium",
-        crowdBiasExpected: "Estimated 84% USA dominant crowd layout",
-        environmentalAnalysis: "No limiting weather factors. Pitch parameters fully favor high-speed athletic transitions."
-      },
-      phase5SquadFatigueManager: {
-        fatigueScoreHome: 24,
-        fatigueScoreAway: 68,
-        congestionAnalysis: "USWNT rested major starters in the previous friendly. German core played 180 international minutes in the past week.",
-        managerExperienceHome: "Emma Hayes (Veteran, high elite structural experience, 95 rating)",
-        managerExperienceAway: "Interim coaching team (Transition state, 70 rating)",
-        managerDecisionImpact: "Emma Hayes' tactical versatility lowers model variance, whilst Germany's interim staff increases unpredictability by +4%."
-      },
-      phase6PsychologicalEngine: {
-        motivationContextHome: "Testing squad depth in front of massive home audience. High motivation.",
-        motivationContextAway: "Redemption arc after early major bracket exits. Average motivation.",
-        derbyTensionLevel: "LOW",
-        situationalStakes: "High profile international series preparation. Standard competitive honor stakes.",
-        psychologicalEdge: "USA Women (Confident, bolstered by recent Olympic gold achievements)",
-        psychologicalAnalysis: "Reigning champions enter with zero performance blocks, while Germany battles historical performance pressure against top-ranked sides."
-      },
-      phase7MatchdayValidation: {
-        expectedVsConfirmedHome: "CONFIRMED: Sophia Smith, Trinity Rodman, and Lindsey Horan start.",
-        expectedVsConfirmedAway: "DISRUPTION: Main striker Alexandra Popp of Germany benched due to late knee precaution.",
-        lineupDisruptionScoreHome: -1.0,
-        lineupDisruptionScoreAway: -3.8,
-        confirmedTacticalShiftHome: "Standard aggressive wing alignment confirmed.",
-        confirmedTacticalShiftAway: "Germany adjusts to deep 4-1-4-1 mid-block without direct focal target POpp.",
-        suspensionsAndLateScrapes: "Starting center-back Naomi Girma rested precautionary due to mild quad soreness.",
-        personnelDeductionAnalysis: "Alexandra Popp out = Away Attacking Rating drops from 84 -> 75, reducing projected German xG by 0.28.",
-        validationVerdict: "Pre-match roster validations favor the USA. The loss of Germany's primary target striker creates a massive -3.8 disruption decay."
-      },
-      phase8MonteCarlo: {
-        adjustedXgHome: 1.95,
-        adjustedXgAway: 1.14,
-        winProbabilityHome: 58,
-        winProbabilityDraw: 22,
-        winProbabilityAway: 20,
-        cleanSheetProbHome: 34,
-        cleanSheetProbAway: 15,
-        scorelineProjections: [
-          { score: "2 - 1", probability: 16.4 },
-          { score: "1 - 1", probability: 11.2 },
-          { score: "2 - 0", probability: 10.8 },
-          { score: "3 - 1", probability: 8.9 },
-          { score: "1 - 2", probability: 7.2 }
-        ],
-        predictionConfidenceScore: 88,
-        predictionConfidenceExplanation: "High confidence score (88%) driven by exceptionally solid starting lineup confirmations, matching weather patterns, and Emma Hayes' highly consistent coaching history.",
-        simulationConfidenceInterval: "USA wins 58% ± 4.2% across 10,000 runs inside standard deviation curves."
-      },
-      phase9ValueBetDetection: {
-        marketOddsHome: "-125 (Decimal 1.80)",
-        marketOddsDraw: "+260 (Decimal 3.60)",
-        marketOddsAway: "+310 (Decimal 4.10)",
-        modelOddsHome: "-138 (Decimal 1.72)",
-        modelOddsDraw: "+255 (Decimal 3.55)",
-        modelOddsAway: "+400 (Decimal 5.00)",
-        edgeHome: 5.5,
-        edgeDraw: 0.5,
-        edgeAway: -6.0,
-        edgeVerdict: "VALUE OPPORTUNITY",
-        exactDiscrepancyExplanation: "The bookmakers heavily undervalue USA Women due to conservative international history weightings, failing to account for Alexandra Popp's absence. This creates a clear 5.5% model edge on USA Women Moneyline.",
-        valueRecommendation: "USA Women Moneyline is highly recommended at -125 or higher."
-      }
-    };
+  // Altitude impacts
+  let staminaDropHome = isHighAltitude && !altitudeCampHome ? 12 : 2;
+  let staminaDropAway = isHighAltitude && !altitudeCampAway ? 12 : 2;
+
+  // Travel miles, zones, recovery rest
+  let distHome = 240;
+  let distAway = isHighAltitude ? 1200 : 3800;
+  let zonesHome = 1;
+  let zonesAway = isHighAltitude ? 2 : 6;
+  let restHome = 6;
+  let restAway = 5;
+
+  let travelFatigueHome = Math.round(15 + (distHome / 200) + (zonesHome * 5));
+  let travelFatigueScoreAway = Math.round(Math.min(95, Math.max(20, (distAway / 100) + (zonesAway * 7) - (restAway * 3))));
+
+  // Climate adjustments
+  let humidity = temp > 28 ? 85 : 55;
+  let wind = moisture === "Wet/Raining" ? 22 : 8;
+  let climateDecayHome = temp > 30 ? 0.14 : 0.03;
+  let climateDecayAway = temp > 30 ? 0.18 : 0.04;
+
+  // Pitch surface friction
+  let frictionStr = "Standard Natural Turf: Friction coefficient 1.0x with linear traction";
+  if (moisture === "Wet/Raining") {
+    frictionStr = "Slick Wet Turf: Traction reduced by 8%, ball slide velocity elevated by 15%";
+  } else if (moisture === "Dry/Long Grass") {
+    frictionStr = "Sticky Grass: Friction increased, deceleration curve dragging transition speed by 12%";
+  } else if (isClimateControlled) {
+    frictionStr = "Dry Artificial Turf: Roof closed, standard grain drag coefficient active";
   }
 
-  // USA vs Germany Men dynamic mock data
-  if (isUSAvsGER) {
-    return {
-      matchInfo: {
-        homeTeam: "United States",
-        awayTeam: "Germany",
-        venue: "Soldier Field, Chicago, IL",
-        surface: "Natural Grass (Historically hummocky/difficult)",
-        date: "June 6, 2026"
-      },
-      matchdayContext: {
-        venueStatus: "Standard League Match (Mode A)",
-        environmentalAdjustments: "Wet grass surface under heavy rain, 74°F, 78% High Humidity. Slowing ball roll velocity and increasing muscle fatigue metrics by +11%.",
-        venueInfluenceIndex: "Soldier Field is a major host stronghold. Home fan support provides +0.22 xG expected advantage."
-      },
-      explainabilityLayer: {
-        positiveDrivers: [
-          "+ Direct transition speed on wet turf (+11%)",
-          "+ Tactical Gegenpress matching perfectly to Germany's slow build-up counters (+7%)",
-          "+ Crowd/Host energy bonus (+4%)"
-        ],
-        negativeFactors: [
-          "- Starting Goalkeeper Matt Turner failed physical fitness assessment (-4%)",
-          "- Defensive depth squad congestion (-2%)"
-        ]
-      },
-      whyNotEngine: {
-        failureConditions: [
-          "Germany's outstanding central box fluid rotations bypass the aggressive US mid-block press cleanly in early transitions.",
-          "Early structural red card or structural penalty conceding momentum.",
-          "Extreme finishing underperformance relative to high accumulated xG."
-        ]
-      },
-      phase1PowerRating: {
-        homeRating: 83.4,
-        awayRating: 88.6,
-        squadDepthValueHome: "$280M Market Valuation. Solid athletic framework but lacks elite deep playmaker depth.",
-        squadDepthValueAway: "$830M Market Valuation. Comprehensive world-class rosters across all positions.",
-        historicalXgTrendHome: 1.45,
-        historicalXgTrendAway: 1.85,
-        analysis: "Germany commands a direct raw power rating advantage. USA's core lineup is highly dynamic and physical but lacks Germany's deep creative bench options."
-      },
-      phase2FormMomentum: {
-        recentFormHome: ["W", "D", "W", "L", "W"],
-        recentFormAway: ["W", "W", "D", "L", "D"],
-        pointsDivergenceHome: "+0.15 xPTS Differential (Performing nicely in relation to rating expectations)",
-        pointsDivergenceAway: "-0.32 xPTS Differential (Performing slightly under public expectation index)",
-        cleanSheetTrendHome: "2 clean sheets in last 5 matches",
-        cleanSheetTrendAway: "1 clean sheet in last 5 matches",
-        analysis: "USA is in excellent physical rhythm, while Germany shows slight defensive over-extension metrics in late-stages."
-      },
-      phase3TacticalEngine: {
-        homeFormation: "4-3-3",
-        awayFormation: "4-2-2-2 (Nagelsmann Box Midfield)",
-        homeTacticalStyle: "High-athleticism Gegenpress, fast transitions through vertical flanks",
-        awayTacticalStyle: "Fluid horizontal possession build-up designed to limit energy loss",
-        homePpda: 8.4,
-        awayPpda: 11.2,
-        formationStabilityScoreHome: 86,
-        formationStabilityScoreAway: 74,
-        transitionVulnerabilityHome: "Vulnerable to rapid overlapping counters behind over-committed wingbacks",
-        transitionVulnerabilityAway: "Highly vulnerable to direct speed turnovers in the defensive central pivot zone",
-        matchupAnalysis: "USA's intense vertical press (PPDA 8.4) targets central midfield turnover pockets. Germany uses slow tempo passing to neutralize the US energy blocks."
-      },
-      phase4VenueEnvironment: {
-        weatherDetails: "Rain showers, 74°F, 78% humidity. Soft heavy turf.",
-        weatherIcon: "cloud",
-        altitudeMeters: 179,
-        travelDistancePenaltyHome: "None (Internal preparation camp)",
-        travelDistancePenaltyAway: "High (Transatlantic flight & -6 hours jet lag adjustment)",
-        pitchFrictionTurf: "Wet natural grass: slow ball velocity, high muscle fatigue hazard",
-        homeAdvantageMagnitude: "+0.22 xG advantage based on Chicago crowd momentum",
-        crowdBiasExpected: "Estimated 78% USA fan turnout",
-        environmentalAnalysis: "Soldier Field's grass will clip and peel under heavy rain. High-humidity represents an additional 12% energy tax on German players."
-      },
-      phase5SquadFatigueManager: {
-        fatigueScoreHome: 30,
-        fatigueScoreAway: 72,
-        congestionAnalysis: "USA players came from early off-season rest windows. German squad logged high domestic minutes in critical UEFA campaigns.",
-        managerExperienceHome: "Standard National Manager (Experienced system developer, 78 rating)",
-        managerExperienceAway: "Julian Nagelsmann (Elite tactical adapter, 94 rating)",
-        managerDecisionImpact: "Nagelsmann's expert mid-game tactical shifts decrease German variance, while US coaching shows lower tactical flexibility (+5% model uncertainty)."
-      },
-      phase6PsychologicalEngine: {
-        motivationContextHome: "High incentive to secure statement victory on home soil. High priority.",
-        motivationContextAway: "Extremely low-key experimental test sequence. Focus is strictly on physical preservation.",
-        derbyTensionLevel: "LOW",
-        situationalStakes: "Pre-World Cup Send-off Series friendly. Pride and chemistry stakes.",
-        psychologicalEdge: "United States (Maximum motivation & intense showpiece drive)",
-        psychologicalAnalysis: "USA treats this as a crucial momentum booster before World Cup kick-off. Germany's squad plays carefully to avoid pre-tournament injury scars."
-      },
-      phase7MatchdayValidation: {
-        expectedVsConfirmedHome: "CONFIRMED: Pulisic and McKennie start. Goalkeeper Matt Turner failed physical fitness test.",
-        expectedVsConfirmedAway: "DISRUPTION: Key attacker Kai Havertz is rested; Jamal Musiala starts as sub. Late defensive changes.",
-        lineupDisruptionScoreHome: -1.2,
-        lineupDisruptionScoreAway: -3.8,
-        confirmedTacticalShiftHome: "Ethan Horvath replaces Matt Turner in goal. No shift in formation.",
-        confirmedTacticalShiftAway: "Germany pivots to a deep 4-2-3-1 counter-shape to limit stamina depletion.",
-        suspensionsAndLateScrapes: "Kai Havertz sitting out match due to minor adductor strain.",
-        personnelDeductionAnalysis: "Kai Havertz out = Away Attacking Rating drops 86 -> 78, reducing projected xG by 0.32.",
-        validationVerdict: "Pre-match roster validations favor the USA. Loss of Havertz and resting Musiala reduces Germany's attacking efficiency significantly."
-      },
-      phase8MonteCarlo: {
-        adjustedXgHome: 1.57,
-        adjustedXgAway: 1.23,
-        winProbabilityHome: 41,
-        winProbabilityDraw: 27,
-        winProbabilityAway: 32,
-        cleanSheetProbHome: 18,
-        cleanSheetProbAway: 22,
-        scorelineProjections: [
-          { score: "2 - 1", probability: 14.2 },
-          { score: "1 - 1", probability: 12.8 },
-          { score: "1 - 2", probability: 9.5 },
-          { score: "2 - 0", probability: 8.1 },
-          { score: "0 - 1", probability: 7.4 }
-        ],
-        predictionConfidenceScore: 82,
-        predictionConfidenceExplanation: "Confidence rating is stable at 82%. Lowered slightly due to Ethan Horvath starting in place of Matt Turner, but supported heavily by clear European travel fatigue metrics.",
-        simulationConfidenceInterval: "USA wins 41.0% ± 4.5% across 10,000 runs inside standard deviation curves."
-      },
-      phase9ValueBetDetection: {
-        marketOddsHome: "+222 (Decimal 3.22)",
-        marketOddsDraw: "+285 (Decimal 3.85)",
-        marketOddsAway: "+132 (Decimal 2.32)",
-        modelOddsHome: "+144 (Decimal 2.44)",
-        modelOddsDraw: "+270 (Decimal 3.70)",
-        modelOddsAway: "+212 (Decimal 3.12)",
-        edgeHome: 10.0,
-        edgeDraw: 1.0,
-        edgeAway: -11.0,
-        edgeVerdict: "VALUE OPPORTUNITY",
-        exactDiscrepancyExplanation: "The bookmakers heavily overweight Germany's name brand, completely ignoring transatlantic flight fatigue and resting starters. This yields a major 10.0% overlay edge on USA Moneyline.",
-        valueRecommendation: "United States Moneyline or Draw No Bet (DNB) at +135 represents exceptional value with built-in draw protection."
-      },
-      stratosV2: {
-        matchStressReport: {
-          venueName: activeVenue,
-          localTime: activeKickoff + " local time",
-          roofStatus: isClimateControlled ? "Closed (Climate-Controlled)" : "Open-air",
-          environmentalStressIndex: temp > 32 ? "SEVERE" : temp > 22 ? "MODERATE" : "LOW",
-          temperatureCelsius: temp,
-          humidityPercentage: isHeatHumidityImpacted ? 85 : 55,
-          solarRadiation: kickoffHour >= 11 && kickoffHour <= 16 && !isClimateControlled ? "Peak (Afternoon Solar Threat)" : "None (Evening Kickoff)",
-          airQualityIndex: "Good (AQI 32)",
-          altitudeMeters: altitudeMeters,
-          haiHomeScore: altitudeCampHome ? 95 : 60,
-          haiHomePerformanceDrop: isHighAltitude && !altitudeCampHome ? 12 : 3,
-          haiAwayScore: altitudeCampAway ? 95 : 60,
-          haiAwayPerformanceDrop: isHighAltitude && !altitudeCampAway ? 12 : 3,
-          mostAffectedPositions: [
-            "Central Midfielders (-18% stamina wall at 60min)",
-            "Wingers & Fullbacks (-15% intensive transition wall)",
-            "Strikers (-10% pressing ceiling drop)",
-            "Center Backs (-7% recovery line delay)"
-          ],
-          substituteImportanceAnalysis: "High bench dependence active. Starting XI physical intensity decay shifts emphasis to late-game substitute rosters.",
-          travelDistanceMilesHome: 320,
-          travelDistanceMilesAway: 4120,
-          timeZoneDeltaHome: 0,
-          timeZoneDeltaAway: -6,
-          restDaysHome: 6,
-          restDaysAway: 5,
-          benchSustainabilityScoreHome: 86,
-          benchSustainabilityScoreAway: 78
-        },
-        valueBetOverlay: {
-          targetMarket: temp > 28 ? "Under 2.5 Goals (due to thermal match deceleration)" : "Home Draw-No-Bet (DNB)",
-          edgePercentage: temp > 28 ? 7.5 : 10.0,
-          calculatedOdds: temp > 28 ? "-115 (Decimal 1.87)" : "+144 (Decimal 2.44)",
-          marketOdds: temp > 28 ? "+110 (Decimal 2.10)" : "+222 (Decimal 3.22)",
-          verdict: "VALUE OPPORTUNITY"
-        }
-      }
-    };
+  // Tactical setup
+  let formationHome = "4-3-3";
+  let formationAway = "4-2-3-1";
+  let ppdaHome = temp > 30 ? 10.2 : 8.4;
+  let ppdaAway = temp > 30 ? 12.1 : 10.2;
+
+  // Player availability and depth
+  let missingH = isWomen ? ["Naomi Girma (Rested)"] : ["Matt Turner (Quad)"];
+  let missingA = isWomen ? ["Alexandra Popp (Knee)"] : ["Kai Havertz (Adductor)"];
+  let availDeltaH = isWomen ? -0.8 : -1.2;
+  let availDeltaA = isWomen ? -3.5 : -2.8;
+  let depthH = isWomen ? 92 : 84;
+  let depthA = isWomen ? 74 : 88;
+
+  // Formation Stability
+  let stabilityHome = 94;
+  let stabilityAway = 78;
+  let instabilityPenH = 0.0;
+  let instabilityPenA = isWomen ? 3.0 : 4.5;
+
+  // Psychology STAKES
+  let compContext = normalizedHome.includes("women") || normalizedAway.includes("women") ? "International High Profile Series" : "World Cup 10k Simulation Stage";
+  let motivationHome = "Extremely high to showcase tactical strength on home turf";
+  let motivationAway = "Stable motivation focused on injury avoidance and tactical drills";
+
+  // Monte Carlo
+  let baseAdjustedXgHome = isWomen ? 2.15 : 1.57;
+  let baseAdjustedXgAway = isWomen ? 1.14 : 1.23;
+
+  if (temp > 30) {
+    baseAdjustedXgHome = parseFloat((baseAdjustedXgHome * 0.88).toFixed(2));
+    baseAdjustedXgAway = parseFloat((baseAdjustedXgAway * 0.85).toFixed(2));
+  }
+  if (moisture === "Dry/Long Grass") {
+    baseAdjustedXgHome = parseFloat((baseAdjustedXgHome * 0.93).toFixed(2));
+    baseAdjustedXgAway = parseFloat((baseAdjustedXgAway * 0.93).toFixed(2));
   }
 
-  // General fallback mock prediction generator
+  let homeProb = Math.round(33 + (baseAdjustedXgHome - baseAdjustedXgAway) * 28);
+  let awayProb = Math.round(33 - (baseAdjustedXgHome - baseAdjustedXgAway) * 28);
+  let drawProb = 100 - homeProb - awayProb;
+  if (homeProb < 10) homeProb = 10;
+  if (awayProb < 10) awayProb = 10;
+  if (drawProb < 10) drawProb = 10;
+  const tot = homeProb + awayProb + drawProb;
+  if (tot !== 100) homeProb += (100 - tot);
+
+  let confidenceScore = isWomen ? 88 : 82;
+  if (temp > 32) confidenceScore -= 10;
+
+  // Value bet and guardrail
+  let calculatedOddsH = `+${Math.round((100 / homeProb - 1) * 100)}`;
+  let calculatedOddsD = `+${Math.round((100 / drawProb - 1) * 100)}`;
+  let calculatedOddsA = `+${Math.round((100 / awayProb - 1) * 100)}`;
+
+  let bookmakerOddsH = homeProb > 45 ? "-110" : "+180";
+  let bookmakerOddsD = "+260";
+  let bookmakerOddsA = awayProb > 45 ? "-105" : "+210";
+
+  let valMarginH = homeProb > 40 ? 5.8 : 1.2;
+  let valMarginD = 0.5;
+  let valMarginA = awayProb > 40 ? 6.4 : -2.5;
+
+  // Force NO EDGE state for neutral fallback matches to demonstrate the "No Bet" guardrail!
+  const isNeutralFallback = !normalizedHome.includes("usa") && !normalizedHome.includes("united states") && !normalizedHome.includes("germany") && !normalizedHome.includes("france") && !normalizedHome.includes("colombia") && !normalizedHome.includes("england");
+  if (isNeutralFallback) {
+    confidenceScore = 48; // drops below 50% to trigger the guardrail!
+    valMarginH = 1.0;
+    valMarginA = 1.5;
+  }
+
+  const dataQualityScoreVal = isNeutralFallback ? 65 : 95;
+  const startingXiContinuityHomeVal = 91;
+  const startingXiContinuityAwayVal = 84;
+  const coachTenureMonthsHomeVal = 28;
+  const coachTenureMonthsAwayVal = 15;
+  const daysRestHomeVal = restHome;
+  const daysRestAwayVal = restAway;
+  const calculatedEdgePctVal = isNeutralFallback ? 1.5 : (valMarginH > valMarginA ? valMarginH : valMarginA);
+  const stratosConfidenceScoreVal = confidenceScore;
+
+  const hasEdge = stratosConfidenceScoreVal >= 50 && dataQualityScoreVal >= 70 && calculatedEdgePctVal >= 3.0;
+  const verdictResult: "⚠️ NO EDGE DETECTED - SKIP MATCH" | "🟢 VALUE OPPORTUNITY" = hasEdge ? "🟢 VALUE OPPORTUNITY" : "⚠️ NO EDGE DETECTED - SKIP MATCH";
+  const targetMarket = hasEdge ? (valMarginH > valMarginA ? `${home} Moneyline` : `${away} +0.5 Asian Handicap`) : "NO EDGE - SKIP MATCH";
+
+  const formattedCalculatedOdds = `Home: ${calculatedOddsH}, Draw: ${calculatedOddsD}, Away: ${calculatedOddsA}`;
+  const formattedBookmakerOdds = `Home: ${bookmakerOddsH}, Draw: ${bookmakerOddsD}, Away: ${bookmakerOddsA}`;
+
   return {
     matchInfo: {
       homeTeam: home,
       awayTeam: away,
-      venue: "Neutral Stadium / Main Ground",
-      surface: "Natural Grass",
+      venue: activeVenue,
+      surface: isClimateControlled ? "Artificial Grass" : "Natural Grass",
       date: "Scheduled Today"
     },
     matchdayContext: {
-      venueStatus: "Standard League Match (Mode A)",
-      environmentalAdjustments: "Standard climate, mild temperature (68°F), clear weather. Optimal friction index modeled.",
-      venueInfluenceIndex: "Minimal environmental bias. Standard travel penalty rules applied."
+      venueStatus: isHighAltitude || isClimateControlled ? "Tournament / Neutral Venue (Mode B)" : "Standard League Match (Mode A)",
+      environmentalAdjustments: `Kickoff at ${activeKickoff} with temperature ${temp}°C and pitch moisture marked '${moisture}'. Friction details: ${frictionStr}.`,
+      venueInfluenceIndex: `Altitude: ${altitudeMeters}m. Weather: ${temp}°C / ${wind}km/h. Crowd distribution expected at 75% local home splits.`,
+      refereeName: "Szymon Marciniak",
+      cardsPerMatch: 4.8,
+      penaltyFrequencyPct: 24.5,
+      oddsDriftPct: 2.15,
+      importanceMultiplier: 1.5,
+      motivationIndexHome: 95,
+      motivationIndexAway: 78,
+      lineupShockDetectedHome: false,
+      lineupShockDetectedAway: true,
+      absenceImpactHome: Math.abs(availDeltaH),
+      absenceImpactAway: Math.abs(availDeltaA),
+      data_quality_score: dataQualityScoreVal,
+      dataQualityScore: dataQualityScoreVal,
+      starting_xi_continuity_home: startingXiContinuityHomeVal,
+      startingXiContinuityHome: startingXiContinuityHomeVal,
+      starting_xi_continuity_away: startingXiContinuityAwayVal,
+      startingXiContinuityAway: startingXiContinuityAwayVal,
+      coach_tenure_months_home: coachTenureMonthsHomeVal,
+      coachTenureMonthsHome: coachTenureMonthsHomeVal,
+      coach_tenure_months_away: coachTenureMonthsAwayVal,
+      coachTenureMonthsAway: coachTenureMonthsAwayVal,
+      days_rest_home: daysRestHomeVal,
+      daysRestHome: daysRestHomeVal,
+      days_rest_away: daysRestAwayVal,
+      daysRestAway: daysRestAwayVal,
+      calculated_edge_pct: calculatedEdgePctVal,
+      calculatedEdgePct: calculatedEdgePctVal,
+      stratos_confidence_score: stratosConfidenceScoreVal,
+      stratosConfidenceScore: stratosConfidenceScoreVal,
     },
     explainabilityLayer: {
       positiveDrivers: [
-        "+ Steady points divergence last 5 (+6%)",
-        "+ Tactical block consolidation (+4%)"
+        `Argentina Power rating advantage [homeElo]`,
+        `Favorable home team squad continuity score [starting_xi_continuity_home]`
       ],
       negativeFactors: [
-        "- Slight travel fatigue surcharge (-2%)"
+        `Adverse rest discrepancy of only ${daysRestAwayVal} days rest [days_rest_away]`,
+        `Degrading environmental climate decay under intense temperature conditions [climateDecayFactorAway]`
       ]
     },
     whyNotEngine: {
       failureConditions: [
-        "Unplanned early team red card disrupts baseline tactical stability score.",
-        "Opposing team successfully exploits central transition pockets.",
-        "Both teams default to high-fatigue low blocks, freezing general scoring chances."
+        "Unplanned early referee red card completely breaks initial Poisson projection matrices.",
+        "Opponent successfully parks an aggregate triple pivot defensive block, choking out transition play.",
+        "Extreme dehydration or sudden heat exhaustion in defensive pivots."
       ]
     },
-    phase1PowerRating: {
-      homeRating: 78.5,
-      awayRating: 77.2,
-      squadDepthValueHome: "Standard structural rating. Established domestic defensive pivots.",
-      squadDepthValueAway: "Equal structural rating. Balanced roster depth.",
-      historicalXgTrendHome: 1.32,
-      historicalXgTrendAway: 1.28,
-      analysis: "Very close raw strength profiles. Equal technical benchmarks indicate highly compact expected deviations."
+    phase1EloStrength: {
+      homeElo: baseHomeElo,
+      awayElo: baseAwayElo,
+      historicalXgTrendHome: isWomen ? 2.15 : 1.45,
+      historicalXgTrendAway: isWomen ? 1.58 : 1.85,
+      rosterValueHome: `$${Math.round(baseHomeElo * 3.5)}M Pool Valuation`,
+      rosterValueAway: `$${Math.round(baseAwayElo * 3.8)}M Pool Valuation`,
+      genderBaselineHistory: `Calibrated against historical ${genderSlate} models.`,
+      analysis: `Power structure represents a baseline ELO split of ${baseHomeElo} vs ${baseAwayElo} in favor of ${baseHomeElo > baseAwayElo ? home : away}.`
     },
-    phase2FormMomentum: {
-      recentFormHome: ["D", "W", "L", "W", "D"],
-      recentFormAway: ["W", "L", "W", "W", "D"],
-      pointsDivergenceHome: "+0.04 xPTS Drift (Neutral momentum trajectory)",
-      pointsDivergenceAway: "+0.11 xPTS Drift (Healthy form cycle)",
-      cleanSheetTrendHome: "1 clean sheet in last 5",
-      cleanSheetTrendAway: "2 clean sheets in last 5",
-      analysis: "Both teams arrive in clean form, keeping baseline performance parameters highly convergent."
+    phase2TacticalMatchup: {
+      homeFormation: formationHome,
+      awayFormation: formationAway,
+      passingVelocityHome: moisture === "Wet/Raining" ? "High Tempo (2.4m/s slick glide)" : "Medium Paced (1.8m/s)",
+      passingVelocityAway: "Direct slow build switches",
+      homePpda: ppdaHome,
+      awayPpda: ppdaAway,
+      defensiveBlockStyleHome: "Aggressive Gegenpress high line",
+      defensiveBlockStyleAway: moisture === "Dry/Long Grass" ? "Symmetric deep low block" : "Mid-block pressing overlay",
+      formationCompatibilityAnalysis: `Formation comparison of ${formationHome} vs ${formationAway} is modeled. High press index of PPDA ${ppdaHome} targets defensive pivots.`
     },
-    phase3TacticalEngine: {
-      homeFormation: "4-2-3-1",
-      awayFormation: "4-3-3",
-      homeTacticalStyle: "Compact low block with rapid wing counter-attacks",
-      awayTacticalStyle: "High possession width targeting overlapping fullbacks",
-      homePpda: 11.5,
-      awayPpda: 9.2,
-      formationStabilityScoreHome: 82,
-      formationStabilityScoreAway: 80,
-      transitionVulnerabilityHome: "Vulnerable to overlapping wingers on physical transition shifts",
-      transitionVulnerabilityAway: "Exposed in deep central spaces behind aggregate midfield line",
-      matchupAnalysis: "Home's double pivot shields the back line effectively. High stability ratings suggest standard simulation behavior."
+    phase3SquadAvailability: {
+      missingPersonnelHome: missingH,
+      missingPersonnelAway: missingA,
+      availabilityDeltaHome: availDeltaH,
+      availabilityDeltaAway: availDeltaA,
+      depthSustainabilityScoreHome: depthH,
+      depthSustainabilityScoreAway: depthA,
+      analysis: `Absence of key personnel results in a rating delta of ${availDeltaH} vs ${availDeltaA}. Depth scores highlight roster resilience curves.`
     },
-    phase4VenueEnvironment: {
-      weatherDetails: "Clear skies, mild wind, 68°F.",
-      weatherIcon: "sun",
-      altitudeMeters: 45,
-      travelDistancePenaltyHome: "None (Host ground)",
-      travelDistancePenaltyAway: "Low (Sub-3 hour domestic transit)",
-      pitchFrictionTurf: "Standard hydration level grass: optimal ball roll",
-      homeAdvantageMagnitude: "+0.15 xG baseline home field multiplier",
-      crowdBiasExpected: "Neutral distribution predicted",
-      environmentalAnalysis: "No restricting weather factors. Pitch parameters fully favor standard tactical deployments."
+    phase4FormationStability: {
+      expectedFormationHome: formationHome,
+      expectedFormationAway: formationAway,
+      last5FormationsHome: [formationHome, formationHome, "4-3-3", formationHome, formationHome],
+      last5FormationsAway: [formationAway, "4-3-3", formationAway, "3-5-2", formationAway],
+      instabilityPenaltyHome: instabilityPenH,
+      instabilityPenaltyAway: instabilityPenA,
+      stabilityRatingHome: stabilityHome,
+      stabilityRatingAway: stabilityAway,
+      analysis: `Formation stability scores are calibrated at ${stabilityHome}% vs ${stabilityAway}%. Manager tactical alterations are penalised accordingly.`
     },
-    phase5SquadFatigueManager: {
-      fatigueScoreHome: 35,
-      fatigueScoreAway: 38,
-      congestionAnalysis: "Both sides have had a full 6 days to rest, leaving fatigue scores within safe margins.",
-      managerExperienceHome: "Experienced Club Manager (80 rating)",
-      managerExperienceAway: "Experienced Club Manager (82 rating)",
-      managerDecisionImpact: "Both managers have stable tactical styles, minimizing model variance."
+    phase5TravelStress: {
+      flightDistanceMilesHome: distHome,
+      flightDistanceMilesAway: distAway,
+      timeZonesCrossedHome: zonesHome,
+      timeZonesCrossedAway: zonesAway,
+      recoveryRestHoursHome: restHome * 24,
+      recoveryRestHoursAway: restAway * 24,
+      travelFatigueScoreHome: travelFatigueHome,
+      travelFatigueScoreAway: travelFatigueScoreAway,
+      analysis: `Travel fatigue scores of ${travelFatigueHome}/100 and ${travelFatigueScoreAway}/100 capture physical recovery rest disparities.`
     },
-    phase6PsychologicalEngine: {
-      motivationContextHome: "High incentive to secure safety points in regional matches.",
-      motivationContextAway: "Pushing for top tier tournament qualification brackets.",
-      derbyTensionLevel: "LOW",
-      situationalStakes: "Mid-season league round. Standard motivation levels.",
-      psychologicalEdge: "Neutral (Even distribution)",
-      psychologicalAnalysis: "Both sides arrive under standard competitive focus, indicating average psychological tension levels."
+    phase6ClimateAdaptation: {
+      matchdayTempCelsius: temp,
+      matchdayHumidityPercent: humidity,
+      matchdayWindKmh: wind,
+      climateDecayFactorHome: climateDecayHome,
+      climateDecayFactorAway: climateDecayAway,
+      adaptationProfileHome: `Acclimatized domestic cohort. Heat decay active above ${temp}°C`,
+      adaptationProfileAway: `Transatlantic travelers adjusting to ${temp}°C thermal limits`,
+      analysis: `Thermal match decay of ${Math.round(climateDecayHome * 100)}% vs ${Math.round(climateDecayAway * 100)}% acts exponentially past sixty minutes.`
     },
-    phase7MatchdayValidation: {
-      expectedVsConfirmedHome: "CONFIRMED: Normal starting lineup. No late scratches.",
-      expectedVsConfirmedAway: "CONFIRMED: Regular XI started. Full health reported.",
-      lineupDisruptionScoreHome: -0.2,
-      lineupDisruptionScoreAway: -0.5,
-      confirmedTacticalShiftHome: "None reported.",
-      confirmedTacticalShiftAway: "None reported.",
-      suspensionsAndLateScrapes: "None detected.",
-      personnelDeductionAnalysis: "Standard Starting XI confirmed on both sides. Average personnel impact predicted.",
-      validationVerdict: "Perfect match health profiles. Roster disruption score is near-zero on both sides."
+    phase7StadiumIntelligence: {
+      altitudeMeters: altitudeMeters,
+      altitudeBallPhysicsAdjustment: isHighAltitude ? `Hypobaric thin air increases drag coefficient by -5% (ball moves faster)` : `Standard sea-level drag metrics`,
+      altitudeStaminaImpactHome: staminaDropHome,
+      altitudeStaminaImpactAway: staminaDropAway,
+      roofEnclosureState: isClimateControlled ? "CLOSED" : "OPEN_AIR",
+      pitchSurfaceFriction: frictionStr,
+      stadiumAnalysis: `Stadium intelligence isolates an altitude of ${altitudeMeters}m with structural pitch friction state: "${frictionStr}".`
     },
-    phase8MonteCarlo: {
-      adjustedXgHome: 1.38,
-      adjustedXgAway: 1.28,
-      winProbabilityHome: 39,
-      winProbabilityDraw: 29,
-      winProbabilityAway: 32,
-      cleanSheetProbHome: 25,
-      cleanSheetProbAway: 27,
+    phase8TournamentPsychology: {
+      competitionContext: compContext,
+      motivationContextHome: motivationHome,
+      motivationContextAway: motivationAway,
+      riskMitigationBehaviorHome: compContext.includes("World Cup") ? "Medium risk mitigation with selective counter pivots" : "Open experimental testing",
+      riskMitigationBehaviorAway: "Deeper defensive preservation limits to maintain stamina",
+      derbyTensionLevel: isHighAltitude ? "MODERATE" : "LOW",
+      behavioralLogicAnalysis: `Behavioral logic matches expected ${compContext} stakes. High professional drive dominates matchday performance parameters.`
+    },
+    phase9MonteCarlo: {
+      adjustedXgHome: baseAdjustedXgHome,
+      adjustedXgAway: baseAdjustedXgAway,
+      winProbabilityHome: homeProb,
+      winProbabilityDraw: drawProb,
+      winProbabilityAway: awayProb,
+      cleanSheetProbHome: Math.round(15 + baseAdjustedXgAway * 8),
+      cleanSheetProbAway: Math.round(15 + baseAdjustedXgHome * 8),
       scorelineProjections: [
-        { score: "1 - 1", probability: 14.5 },
-        { score: "1 - 0", probability: 11.2 },
-        { score: "0 - 1", probability: 10.4 },
-        { score: "2 - 1", probability: 9.8 },
-        { score: "1 - 2", probability: 8.7 }
+        { score: `${Math.ceil(baseAdjustedXgHome)} - ${Math.floor(baseAdjustedXgAway)}`, probability: 15.6 },
+        { score: "1 - 1", probability: 13.4 },
+        { score: `${Math.floor(baseAdjustedXgHome)} - ${Math.ceil(baseAdjustedXgAway)}`, probability: 10.8 },
+        { score: `${Math.ceil(baseAdjustedXgHome)} - ${Math.ceil(baseAdjustedXgAway)}`, probability: 8.5 }
       ],
-      predictionConfidenceScore: 76,
-      predictionConfidenceExplanation: "Solid confidence score (76%) based on high lineup correlation index and standard environmental setups.",
-      simulationConfidenceInterval: "Hosts win 39% of 10,000 runs within standard error ± 5.2%."
+      predictionConfidenceScore: confidenceScore,
+      predictionConfidenceExplanation: `Simulation precision calibrated at ${confidenceScore}% based on standard rosters, active alignments, training camp status, and weather constants.`,
+      dataVolatilityIndex: confidenceScore > 80 ? "LOW" : confidenceScore > 60 ? "MODERATE" : "HIGH"
     },
-    phase9ValueBetDetection: {
-      marketOddsHome: "+156 (2.56)",
-      marketOddsDraw: "+220 (3.20)",
-      marketOddsAway: "+180 (2.80)",
-      modelOddsHome: "+156 (2.56)",
-      modelOddsDraw: "+244 (3.44)",
-      modelOddsAway: "+212 (3.12)",
-      edgeHome: 0.1,
-      edgeDraw: 1.5,
-      edgeAway: -1.6,
-      edgeVerdict: "MARKET ALIGNED",
-      exactDiscrepancyExplanation: "No distinct value margin detected. Model results perfectly match public bookmaker estimates.",
-      valueRecommendation: "Draw No Bet (DNB) for the Home side represents a stable protective option."
+    phase10ValueBetDetection: {
+      calculatedOddsHome: calculatedOddsH,
+      calculatedOddsDraw: calculatedOddsD,
+      calculatedOddsAway: calculatedOddsA,
+      bookmakerOddsHome: bookmakerOddsH,
+      bookmakerOddsDraw: bookmakerOddsD,
+      bookmakerOddsAway: bookmakerOddsA,
+      valueMarginHome: valMarginH,
+      valueMarginDraw: valMarginD,
+      valueMarginAway: valMarginA,
+      edgeVerdict: verdictResult,
+      targetMarketSelection: targetMarket,
+      exactDiscrepancyExplanation: `STRATOS isolates custom environmental parameters (such as ${
+        isHighAltitude ? "Altitude Ball flight + fatigue" : temp > 28 ? "Heat/Humidity + Bench substitutions" : `Pitch moisture: ${moisture}`
+      }) which public trading lists under-represent.`,
+      valueRecommendation: hasEdge ? `Recommended Bet Selection: ${targetMarket} at ${bookmakerOddsH} or Draw No Bet representing substantial margin.` : "⚠️ NO EDGE DETECTED - Safe action dictates SKIP."
     },
-    stratosV2: {
-      matchStressReport: {
-        venueName: venue || "Neutral Stadium / Main Ground",
-        localTime: kickoffTime || "15:00",
-        roofStatus: "Closed",
-        environmentalStressIndex: "LOW",
-        temperatureCelsius: matchTemperature || 20,
-        humidityPercentage: 50,
-        solarRadiation: "None",
-        airQualityIndex: "Good (AQI 28)",
-        altitudeMeters: 45,
-        haiHomeScore: 90,
-        haiHomePerformanceDrop: 2,
-        haiAwayScore: 90,
-        haiAwayPerformanceDrop: 2,
-        mostAffectedPositions: [
-          "Central Midfielders (Standard stamina curves)",
-          "Wingbacks & Outwide players"
-        ],
-        substituteImportanceAnalysis: "None. Standard match pacing and safe climate settings minimize fatigue impact.",
-        travelDistanceMilesHome: 150,
-        travelDistanceMilesAway: 240,
-        timeZoneDeltaHome: 0,
-        timeZoneDeltaAway: 0,
-        restDaysHome: 6,
-        restDaysAway: 6,
-        benchSustainabilityScoreHome: 80,
-        benchSustainabilityScoreAway: 80
+    summaryDataBlocks: {
+      matchStressAndContext: {
+        genderSlate,
+        competitionContext: compContext,
+        esiIndex: temp > 30 ? "SEVERE" : temp > 22 ? "MODERATE" : "LOW",
+        travelFatigueScore: `Home: ${travelFatigueHome}/100, Away: ${travelFatigueScoreAway}/100`
       },
-      valueBetOverlay: {
-        targetMarket: "Home Win or Draw",
-        edgePercentage: 1.5,
-        calculatedOdds: "+156 (2.56)",
-        marketOdds: "+156 (2.56)",
-        verdict: "MARKET ALIGNED"
+      squadResilienceProfile: {
+        squadAvailabilityDelta: `Home: ${availDeltaH} pts, Away: ${availDeltaA} pts`,
+        formationStabilityRating: `Home: ${stabilityHome}%, Away: ${stabilityAway}%`
+      },
+      stratosPredictionMatrix: {
+        homeDrawAwayPct: `${homeProb}% / ${drawProb}% / ${awayProb}%`,
+        top3Scorelines: [
+          `${Math.ceil(baseAdjustedXgHome)} - ${Math.floor(baseAdjustedXgAway)} (15.6%)`,
+          `1 - 1 (13.4%)`,
+          `${Math.floor(baseAdjustedXgHome)} - ${Math.ceil(baseAdjustedXgAway)} (10.8%)`
+        ],
+        predictionConfidenceScorePct: `${confidenceScore}%`
+      },
+      valueBetDetectionOverlay: {
+        stratosOddsVsBookmakerOdds: `Calculated [${formattedCalculatedOdds}] vs Bookmaker [${formattedBookmakerOdds}]`,
+        verdict: verdictResult,
+        targetMarketSelection: targetMarket
       }
-    }
+    },
+    cognitiveNarrative: `### 1. STRATOS MATCH STRESS & CONTEXT INTEGRITY
+* **Fixture Blueprint:** ${home} vs ${away} | ${compContext} | Gender Slate: ${genderSlate}
+* **Data Quality Index:** ${dataQualityScoreVal}/100 (Lineups are Projected)
+* **Environmental Stress Index (ESI):** ${temp > 30 ? "SEVERE" : temp > 22 ? "MODERATE" : "LOW"} (Temp: ${temp}°C, Humidity: ${humidity}%, Altitude: ${altitudeMeters}m, Roof: ${isClimateControlled ? "CLOSED" : "OPEN_AIR"})
+* **Logistical Friction:** Rest Discrepancy: ${daysRestHomeVal} Days vs ${daysRestAwayVal} Days | Market Drift: 2.15%
+
+### 2. SQUAD COHESION & RESILIENCE PROFILES
+* **Home Squad Chemistry:** Continuity Score: ${startingXiContinuityHomeVal}/100 | Manager Tenure: ${coachTenureMonthsHomeVal} Months
+* **Away Squad Chemistry:** Continuity Score: ${startingXiContinuityAwayVal}/100 | Manager Tenure: ${coachTenureMonthsAwayVal} Months
+* **Tactical Cohesion Synthesis:** The Home Team exhibits stable chemistry with a high starting XI continuity of ${startingXiContinuityHomeVal}/100 and manager tenure of ${coachTenureMonthsHomeVal} months. This offers a robust defensive anchor compared to the Away Team's ${startingXiContinuityAwayVal}/100 continuity and shorter manager tenure of ${coachTenureMonthsAwayVal} months. Combined with a rest disparity of ${daysRestHomeVal} days against ${daysRestAwayVal} days, early possession control is simulated to heavily favor the home side.
+
+### 3. THE EXPLAINABILITY LAYER (Grounded Metric Drivers)
+* **Positive Engine Drivers:**
+    1. Foundational team power baseline rating superiority [homeElo]
+    2. Elevated squad starting lineup continuity index [starting_xi_continuity_home]
+* **Negative Engine Factors:**
+    1. Compressed training and recovery rest duration for the guest side [days_rest_away]
+    2. Dynamic thermal fatigue from elevated temperature threshold [climateDecayFactorAway]
+
+### 4. REFEREE & IN-MATCH CRISIS PROFILE
+* **Official Match Referee:** Szymon Marciniak
+* **Disciplinary Profile:** Card Average: 4.8 | Penalty Rate: 24.50%
+* **Tactical Impact Narrative:** Referee Szymon Marciniak represents a major enforcement profile whose card average of 4.8 and penalty rate of 24.50% will penalize physical fatigue highly. In high-stamina weathering blocks (minutes 60-90), transition defense will face elevated card accumulation risks under environmental stress indices.
+
+### 5. FINAL SIMULATION MATRIX & VALUE VERDICT
+* **STRATOS Probabilities:** Home Win ${homeProb}% | Draw ${drawProb}% | Away Win ${awayProb}%
+* **Prediction Confidence Rating:** ${stratosConfidenceScoreVal}%
+* **Top 3 Poisson Distributions:**
+    * ${Math.ceil(baseAdjustedXgHome)} - ${Math.floor(baseAdjustedXgAway)} (15.6%)
+    * 1 - 1 (13.4%)
+    * ${Math.floor(baseAdjustedXgHome)} - ${Math.ceil(baseAdjustedXgAway)} (10.8%)
+* **Betting Market Verdict:** ${verdictResult}
+* **Target Execution:** ${hasEdge ? `Selection: ${targetMarket} with a mathematical calculated edge of +${calculatedEdgePctVal.toFixed(1)}%` : "N/A - System Recommends Passing due to inadequate value profile"}`
   };
 }
 
@@ -1164,7 +807,7 @@ app.post("/api/predict", async (req, res) => {
     console.log(`Calling Gemini API (Stratos v2 Predictive Engine 9-Phase Core with ${activeMode}) for: ${homeTeam} vs ${awayTeam}`);
 
     const promptText = `
-You are STRATOS v2, an elite Football Intelligence and Predictive Decision Engine designed to uncover betting market inefficiencies by running a highly calibrated 9-Phase pipeline.
+You are STRATOS v2, an enterprise-grade Football Intelligence System, Cognitive Interpretation, Tactical Narrative, and Risk Layer purpose-built to translate pre-calculated sports science, weather metrics, and quantitative betting payloads into elite, human-readable betting intelligence.
 
 Analyze the football matchup between:
 Home Team: "${homeTeam}"
@@ -1177,37 +820,108 @@ Pitch Moisture State: "${pitchMoisture || "Standard"}"
 Match Day Temperature Calibration: ${matchTemperature !== undefined ? matchTemperature : 22}°C (approx ${matchTemperature !== undefined ? Math.round(matchTemperature * 1.8 + 32) : 72}°F)
 SELECTED COMPUTATIONAL PASS ENGINE MODE: ${activeMode === 'tier1' ? 'Tier 1 - Browse Mode (fast-pass 500-iteration macro-assessment)' : 'Tier 2 - Deep Analysis Mode (comprehensive 10,000-pass Monte Carlo simulation)'}
 
-You MUST use Google Search tool to extract real-world, up-to-date lineup news, tactical setups, player fatigue metrics, injuries, and weather metrics. Evaluate the matches sequentially through these exact 9 phases:
+You MUST run a search to extract current, real-world lineup news, team injury reports, tactical setups, travel schedules, current referee info, and actual pitch/weather settings for both teams.
 
-### 📊 SECTION I: BASELINES & FORM
-* **Phase 1: Team Power Rating:** Establish the foundational baseline strength of both squads using historical metrics and long-term xG trends.
-* **Phase 2: Form & Momentum:** Calculate short-term performance changes, tracking expected vs. actual points divergence over the last 5 games.
+Process the evaluation sequentially through the following 10 structural phases and generate a detailed quantitative breakdown:
 
-### ⚙️ SECTION II: CONTEXTUAL ENGINE MODIFIERS
-* **Phase 3: Tactical Engine & Formation Stability:** Analyze tactical matchups and calculate a "Formation Stability Score" from 0-100.
-* **Phase 4: Venue & Environment Index (World Cup 2026 Override, Turf & Climate Calibration):** 
-    - Automatically detect the specific host city venue and inject its physical traits into the matchup math:
-        1. Altitude Penalty: If the venue is Mexico City or Guadalajara, apply a progressive -12% Stamina/Fatigue penalty (add +12 to the team's fatigue score) to any team that has not held a training camp at high altitude for >14 days. Increase long-range shooting success metrics by +5% due to ball physics adjustments.
-        2. Heat/Humidity Index: If the venue is an open-air stadium in Houston, Miami, Kansas City, or Monterrey, and the kickoff time is before 6:00 PM local time, reduce the expected Pressing Intensity (PPDA) for both teams by 15% (increase the PPDA score number by 15% because pressing is slower/less intense) and lower the overall expected match goal total (Poisson adjustment for slower match pacing, reducing expected xG for both sides).
-        3. Climate Control Check: If the match is in Dallas (AT&T Stadium) or Atlanta (Mercedes-Benz Stadium), bypass the summer heat penalty due to indoor climate control, but adjust the Turf Friction index for artificial surfaces.
-        4. Slick/Wet Pitch Factor: If the pitch is marked as 'Wet/Raining', boost Ball Velocity by +15%. Increase the performance metrics of high-possession/short-passing tactical profiles. Conversely, apply a -8% Agility/Traction penalty to explosive, directional dribblers.
-        5. Sticky/Dry Pitch Factor: If the pitch is marked as 'Dry/Long Grass', decrease passing fluidity metrics by 12%. Penalize fast-transition teams and apply a +7% defensive stabilization boost to teams utilizing a compact Low-Block system.
-        6. Climate Profiling: Cross-reference club/national team origin with expected matchday temperature. European squads playing in temperatures >30°C receive an automatic baseline adjustment favoring lower overall match intensity (lower expected xG, slower tempo).
-* **Phase 5: Squad Fatigue & Heat Degradation Engine:** Modern physical fatigue engine.
-    - Compute a dynamic Fatigue Score (0-100) combining fixture congestion, international minutes, and climate conditions:
-        1. Heat Multiplier: If match temperature is >30°C (>86°F), apply an accelerating fatigue multiplier. Teams with a High-Pressing profile (low PPDA, e.g., PPDA < 9) will experience a 1.5x sharper drop-off in defensive actions and recovery runs after the 60th minute.
-        2. Bench Dependency: In high-heat environments (>30°C / >86°F), increase the statistical weight of "Phase 7: Matchday Validation Layer" regarding substitute depth quality, as mid-game management will heavily dictate the final 30 minutes of the match probability curve.
-* **Phase 6: Psychological Engine:** Evaluate situational stakes (World Cup elimination pressure, group-stage math, derby rivalries, or "dead rubber" fixtures).
+### 📊 SECTION I: THE STATISTICAL BASELINES
+* **Phase 1: ELO & Foundational Team Strength:** Establish raw team power metrics using long-term xG trends, team roster values, and gender-specific baseline historical performance metrics (Male vs. Female association splits).
+* **Phase 2: Tactical Matchup Engine:** Evaluate formation compatibility (e.g., 4-3-3 vs 3-5-2), passing velocity capabilities, pressing styles (PPDA), and defensive block styles (high line vs deep low block).
 
-### 🚨 SECTION III: MATCHDAY VALIDATION, SIMULATION & VALUE
-* **Phase 7: Matchday Validation Layer:** The final pre-kickoff reality check. Compare expected lineups to likely XI. Compute explicit point/rating deductions for missing personnel (e.g. key scorer out = attacking rating drops, reducing team xG by a calculated value). Specifically evaluate substitute depth and bench value if in high heat (>30°C).
-* **Phase 8: Monte Carlo Simulation & Confidence Engine:** Consume all finalized variables from Phases 1–7. Run 10,000 iterations to produce precise score curves. Simultaneously, compute a Prediction Confidence Score (0-100%) based on data availability, lineup changes, and sample sizes.
-* **Phase 9: Value Bet Detection Layer:** Compare STRATOS v2 probabilities against real-world bookmaker odds (Pinnacle, Bet365, Asian Handicaps). Identify and flag statistical discrepancies as either "VALUE OPPORTUNITY" or "MARKET ALIGNED" edgeVerdict, calculating precise home/draw/away edge percentage and optimal bet selection recommendation.
-* **STRATOS v2 Overlays:** Populate the 'stratosV2' object with ultimate data fidelity:
-    - 'matchStressReport': Conduct a deep biomechanical stress audit based on kickoff temperature, humidity profile, altitude meters, and training camp existence. Calculate the Physiological Heat/Altitude Adaptation Index (HAI, 0 to 100) where 100 is flawless acclimation, and estimate the expected percentage-based tactical drop-off for both teams (e.g., progressive Stamina penalties or rapid physical decay). List the tactical positions hit by physical exhaustion first (mostAffectedPositions) and write a detailed analytical review of physical bench sustainability/late substitute impact. Determine travel distances, time-zone boundaries, rest intervals, and bench sustainability rankings.
-    - 'valueBetOverlay': Calculate high-edge betting overlays, specifying the high-value target selection market (e.g., "Under 2.5 Goals", "Home DNB" or "Away +1.5 Asian Handicap"), model fair odds vs bookmaker odds, and the exact overlay gap percentage.
+### 🚨 SECTION II: THE AVAILABILITY & ENVIRONMENTAL MODIFIERS
+* **Phase 3: Squad Availability Index:** Calculate the specific rating reduction caused by missing personnel (injuries, cards, suspensions). Measure team depth resilience via the Depth Sustainability Score.
+* **Phase 4: Formation Stability Engine:** Analyze lineup variation across the last 5 fixtures to measure tactical consistency. Apply a non-zero instability penalty if a team constantly switches shapes.
+* **Phase 5: Travel Stress Index:** Measure physical travel fatigue by calculating flight hours, miles, time zones crossed, and recovery rest hours between matches.
+* **Phase 6: Climate Adaptation Index:** Model dynamic physical weathering using temperature gradients, wind speeds, and relative humidity. Apply progressive performance decay multipliers after the 60th minute in high-heat (especially for European teams in >30°C conditions).
+* **Phase 7: Stadium Intelligence Layer:** Feed environmental micro-climates including roof status (closed vs open-air), pitch turf friction (slick/wet vs sticky/long grass), and altitude thin-air parameters.
 
-Return a perfectly formatted raw JSON object conforming EXACTLY to the specified JSON schema. Do not wrap the JSON output inside any markdown code blocks. Returns raw JSON only.
+### 🏆 SECTION III: THE DECISION & SIMULATION OVERLAYS
+* **Phase 8: Tournament Psychology Index:** Measure situational stakes including tournament pressure (e.g., group-stage math, elimination rounds), local fan support, and derby rivalry tension.
+* **Phase 9: Full-Scale Monte Carlo Simulation Engine:** Consolidate factors from Phases 1-8. Run the specified iterations (${activeMode === 'tier1' ? '500 iterations for fast-pass' : '10,000 simulations for deep mode'}) to derive expected scorelines, win/draw/away probabilities, clean-sheet probabilities, and a overall Prediction Confidence Score (0-100%).
+* **Phase 10: Value Bet Detector & Edge Isolation Engine:** Identify pricing discrepancies against public bookmaker odds.
+
+---
+
+# 🚫 CORE OPERATIONAL GUARDRAILS & BYPASS DIRECTIVES
+1. **ZERO STATISTICAL FABRICATION:** You are strictly forbidden from inventing, estimating, or hallucinating performance metrics, xG trends, clean sheet frequencies, or scorelines. All metrics in your text must align EXACTLY with the numeric values returned under the schema's properties.
+2. **STRICT EXPLICIT GROUNDING:** When listing "Positive Drivers" or "Negative Factors," you must ONLY reference raw metrics explicitly provided in the JSON payload (such as homeElo, starting_xi_continuity_home, days_rest_away, etc.). For every driver identified, you must append the payload key name in square brackets, e.g., (Positive Driver: Argentina Experience [starting_xi_continuity_away]).
+3. **MISSING DATA SAFEGUARD:** If any metric or index block arrives empty or null, label it explicitly as "DATA UNAVAILABLE" in your report and describe the uncalibrated risk it introduces to the selection.
+4. **⚠️ AUTOMATIC "NO EDGE" SYSTEM ACTIONS:** You must instantly bypass standard pick selections and output a strict "⚠️ NO EDGE DETECTED - SKIP MATCH" betting verdict if any of these conditions are met:
+   - The 'data_quality_score' drops below 70% (Incomplete data).
+   - The 'stratos_confidence_score' drops below 50% (High statistical model volatility).
+   - The 'calculated_edge_pct' is lower than +3.0% against commercial bookmaker odds.
+
+---
+
+# 📋 SECTION IV: PARAMETER COUPLING SYSTEM
+Thoroughly populate the "matchdayContext" properties with exact, calculated figures including:
+- refereeName: Name of a realistic official assigned to this match or competition (e.g. Szymon Marciniak, Halil Umut Meler, etc).
+- cardsPerMatch: The average cards per match for this official (e.g. 4.8).
+- penaltyFrequencyPct: The penalty frequency percentage (e.g. 24.5).
+- oddsDriftPct: The market pricing drift percentage (e.g. 2.15).
+- importanceMultiplier: Tactical context stakes multiplier (e.g. 1.5).
+- motivationIndexHome: Numerical index of motivation for Home (0-100).
+- motivationIndexAway: Numerical index of motivation for Away (0-100).
+- lineupShockDetectedHome: Boolean indicating sudden personnel shock.
+- lineupShockDetectedAway: Boolean.
+- absenceImpactHome: Score reflecting negative roster capacity drag (0 to 10).
+- absenceImpactAway: Score.
+- data_quality_score: Data quality percentage (0-100, e.g., 95 if lineups are projections, or 65 if data is incomplete).
+- dataQualityScore: Match value in data_quality_score.
+- starting_xi_continuity_home: Starting lineup chemistry percentage (0-100, e.g. 91).
+- startingXiContinuityHome: Match value in starting_xi_continuity_home.
+- starting_xi_continuity_away: Starting lineup chemistry percentage (0-100, e.g. 84).
+- startingXiContinuityAway: Match value in starting_xi_continuity_away.
+- coach_tenure_months_home: Months of manager tenure (e.g., 28).
+- coachTenureMonthsHome: Match value in coach_tenure_months_home.
+- coach_tenure_months_away: Months of manager tenure (e.g., 15).
+- coachTenureMonthsAway: Match value in coach_tenure_months_away.
+- days_rest_home: Rest days (e.g., 6).
+- daysRestHome: Match value in days_rest_home.
+- days_rest_away: Guest rest days (e.g., 5).
+- daysRestAway: Match value in days_rest_away.
+- calculated_edge_pct: Mathematical edge margin (e.g., 6.4).
+- calculatedEdgePct: Match value in calculated_edge_pct.
+- stratos_confidence_score: Prediction confidence score percentage (0-100, e.g., 82).
+- stratosConfidenceScore: Match value in stratos_confidence_score.
+
+---
+
+# ✍️ SECTION V: COGNITIVE INTERPRETATION NARRATIVE GENERATION
+You MUST write a comprehensive Markdown document in the "cognitiveNarrative" field. The document MUST follow this Markdown layout EXACTLY, replacing bracketed variables with exact computed or database values:
+
+### 1. STRATOS MATCH STRESS & CONTEXT INTEGRITY
+* **Fixture Blueprint:** [Home Team] vs [Away Team] | [Competition Context] | Gender Slate: [Gender]
+* **Data Quality Index:** [data_quality_score]/100 (List if Lineups are Confirmed vs Projected)
+* **Environmental Stress Index (ESI):** [LOW / MODERATE / SEVERE based on Temperature, Humidity, and Altitude parameters]
+* **Logistical Friction:** Rest Discrepancy: [days_rest_home] Days vs [days_rest_away] Days | Market Drift: [odds_drift_pct]%
+
+### 2. SQUAD COHESION & RESILIENCE PROFILES
+* **Home Squad Chemistry:** Continuity Score: [starting_xi_continuity_home]/100 | Manager Tenure: [coach_tenure_months_home] Months
+* **Away Squad Chemistry:** Continuity Score: [starting_xi_continuity_away]/100 | Manager Tenure: [coach_tenure_months_away] Months
+* **Tactical Cohesion Synthesis:** [Briefly explain how the gap in continuity and rest days impacts the early structural stability of the game]
+
+### 3. THE EXPLAINABILITY LAYER (Grounded Metric Drivers)
+* **Positive Engine Drivers:**
+    1. [Driver 1 - Explicitly name the payload value and add its source bracket]
+    2. [Driver 2 - Explicitly name the payload value and add its source bracket]
+* **Negative Engine Factors:**
+    1. [Factor 1 - Explicitly name the liability metric and add its source bracket]
+    2. [Factor 2 - Explicitly name the liability metric and add its source bracket]
+
+### 4. REFEREE & IN-MATCH CRISIS PROFILE
+* **Official Match Referee:** [Referee Name]
+* **Disciplinary Profile:** Card Average: [cards_per_match] | Penalty Rate: [penalty_frequency_pct]%
+* **Tactical Impact Narrative:** [Synthesize how this referee's strictness profile interacts with the environmental stress metrics during high-fatigue match blocks (minutes 60-90)]
+
+### 5. FINAL SIMULATION MATRIX & VALUE VERDICT
+* **STRATOS Probabilities:** Home Win [Calculated %] | Draw [Calculated %] | Away Win [Calculated %]
+* **Prediction Confidence Rating:** [stratos_confidence_score]%
+* **Top 3 Poisson Distributions:** [List scorelines provided]
+* **Betting Market Verdict:** [Output 🟢 VALUE OPPORTUNITY or ⚠️ NO EDGE DETECTED - SKIP MATCH]
+* **Target Execution:** [If value opportunity exists, specify target selection, bookie odds, and exact mathematical edge %. If no edge exists, write 'N/A - System Recommends Passing due to inadequate value profile']
+
+Return a perfectly formatted raw JSON object conforming EXACTLY to the specified soccerPredictionSchema. Do not wrap the JSON output inside any markdown code blocks. Returns raw JSON only.
 `;
 
     const response = await ai.models.generateContent({
