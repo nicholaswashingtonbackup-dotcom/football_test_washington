@@ -131,6 +131,45 @@ export interface Phase9ValueBetDetection {
   valueRecommendation: string;
 }
 
+export interface StratosV2MatchStressReport {
+  venueName: string;
+  localTime: string;
+  roofStatus: string;
+  environmentalStressIndex: "LOW" | "MODERATE" | "SEVERE";
+  temperatureCelsius: number;
+  humidityPercentage: number;
+  solarRadiation: string;
+  airQualityIndex: string;
+  altitudeMeters: number;
+  haiHomeScore: number;
+  haiHomePerformanceDrop: number;
+  haiAwayScore: number;
+  haiAwayPerformanceDrop: number;
+  mostAffectedPositions: string[];
+  substituteImportanceAnalysis: string;
+  travelDistanceMilesHome: number;
+  travelDistanceMilesAway: number;
+  timeZoneDeltaHome: number;
+  timeZoneDeltaAway: number;
+  restDaysHome: number;
+  restDaysAway: number;
+  benchSustainabilityScoreHome: number;
+  benchSustainabilityScoreAway: number;
+}
+
+export interface StratosV2ValueBetOverlay {
+  targetMarket: string;
+  edgePercentage: number;
+  calculatedOdds: string;
+  marketOdds: string;
+  verdict: "VALUE OPPORTUNITY" | "MARKET ALIGNED";
+}
+
+export interface StratosV2 {
+  matchStressReport: StratosV2MatchStressReport;
+  valueBetOverlay: StratosV2ValueBetOverlay;
+}
+
 export interface MatchPrediction {
   matchInfo: MatchInfo;
   matchdayContext: MatchdayContext;
@@ -145,4 +184,6 @@ export interface MatchPrediction {
   phase7MatchdayValidation: Phase7MatchdayValidation;
   phase8MonteCarlo: Phase8MonteCarlo;
   phase9ValueBetDetection: Phase9ValueBetDetection;
+  stratosV2?: StratosV2;
+  simulationMode?: 'tier1' | 'tier2';
 }

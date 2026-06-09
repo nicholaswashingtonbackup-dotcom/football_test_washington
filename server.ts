@@ -237,6 +237,58 @@ const soccerPredictionSchema = {
       },
       required: ["marketOddsHome", "marketOddsDraw", "marketOddsAway", "modelOddsHome", "modelOddsDraw", "modelOddsAway", "edgeHome", "edgeDraw", "edgeAway", "edgeVerdict", "exactDiscrepancyExplanation", "valueRecommendation"],
     },
+    stratosV2: {
+      type: Type.OBJECT,
+      properties: {
+        matchStressReport: {
+          type: Type.OBJECT,
+          properties: {
+            venueName: { type: Type.STRING },
+            localTime: { type: Type.STRING },
+            roofStatus: { type: Type.STRING },
+            environmentalStressIndex: { type: Type.STRING },
+            temperatureCelsius: { type: Type.NUMBER },
+            humidityPercentage: { type: Type.NUMBER },
+            solarRadiation: { type: Type.STRING },
+            airQualityIndex: { type: Type.STRING },
+            altitudeMeters: { type: Type.NUMBER },
+            haiHomeScore: { type: Type.NUMBER },
+            haiHomePerformanceDrop: { type: Type.NUMBER },
+            haiAwayScore: { type: Type.NUMBER },
+            haiAwayPerformanceDrop: { type: Type.NUMBER },
+            mostAffectedPositions: { type: Type.ARRAY, items: { type: Type.STRING } },
+            substituteImportanceAnalysis: { type: Type.STRING },
+            travelDistanceMilesHome: { type: Type.NUMBER },
+            travelDistanceMilesAway: { type: Type.NUMBER },
+            timeZoneDeltaHome: { type: Type.NUMBER },
+            timeZoneDeltaAway: { type: Type.NUMBER },
+            restDaysHome: { type: Type.NUMBER },
+            restDaysAway: { type: Type.NUMBER },
+            benchSustainabilityScoreHome: { type: Type.NUMBER },
+            benchSustainabilityScoreAway: { type: Type.NUMBER }
+          },
+          required: [
+            "venueName", "localTime", "roofStatus", "environmentalStressIndex",
+            "temperatureCelsius", "humidityPercentage", "solarRadiation", "airQualityIndex",
+            "altitudeMeters", "haiHomeScore", "haiHomePerformanceDrop", "haiAwayScore", "haiAwayPerformanceDrop",
+            "mostAffectedPositions", "substituteImportanceAnalysis", "travelDistanceMilesHome", "travelDistanceMilesAway",
+            "timeZoneDeltaHome", "timeZoneDeltaAway", "restDaysHome", "restDaysAway", "benchSustainabilityScoreHome", "benchSustainabilityScoreAway"
+          ]
+        },
+        valueBetOverlay: {
+          type: Type.OBJECT,
+          properties: {
+            targetMarket: { type: Type.STRING },
+            edgePercentage: { type: Type.NUMBER },
+            calculatedOdds: { type: Type.STRING },
+            marketOdds: { type: Type.STRING },
+            verdict: { type: Type.STRING }
+          },
+          required: ["targetMarket", "edgePercentage", "calculatedOdds", "marketOdds", "verdict"]
+        }
+      },
+      required: ["matchStressReport", "valueBetOverlay"]
+    }
   },
   required: [
     "matchInfo",
@@ -251,7 +303,8 @@ const soccerPredictionSchema = {
     "phase6PsychologicalEngine",
     "phase7MatchdayValidation",
     "phase8MonteCarlo",
-    "phase9ValueBetDetection"
+    "phase9ValueBetDetection",
+    "stratosV2"
   ]
 };
 
@@ -262,7 +315,10 @@ function getMockPrediction(
   venue?: string,
   kickoffTime?: string,
   altitudeCampHome?: boolean,
-  altitudeCampAway?: boolean
+  altitudeCampAway?: boolean,
+  pitchMoisture?: string,
+  matchTemperature?: number,
+  simulationMode?: string
 ): any {
   const normalizedHome = home.toLowerCase();
   const normalizedAway = away.toLowerCase();
@@ -271,6 +327,8 @@ function getMockPrediction(
   const activeVenue = venue || "Soldier Field, Chicago, IL";
   const normalizedVenue = activeVenue.toLowerCase();
   const activeKickoff = kickoffTime || "15:00";
+  const moisture = pitchMoisture || "Standard";
+  const temp = matchTemperature !== undefined ? matchTemperature : 22;
 
   // Host city detection for mathematical overrides
   const isMexicoCity = normalizedVenue.includes("mexico city") || normalizedVenue.includes("azteca");
@@ -299,8 +357,8 @@ function getMockPrediction(
   const isUSAWvsGERW = (normalizedHome.includes("usa women") && normalizedAway.includes("germany women")) ||
                        (normalizedHome.includes("germany women") && normalizedAway.includes("usa women"));
 
-  // If custom inputs or World Cup host venues are triggered, use this highly dynamic environmental math engine
-  if (isHighAltitude || isClimateControlled || isHeatHumidityImpacted || venue || kickoffTime) {
+  // If custom inputs, World Cup host venues, pitch moisture, or temperature are triggered, use this highly dynamic environmental math engine
+  if (isHighAltitude || isClimateControlled || isHeatHumidityImpacted || venue || kickoffTime || pitchMoisture || matchTemperature !== undefined) {
     let homeRating = isUSAWvsGERW ? 91.2 : isUSAvsGER ? 83.4 : Math.min(95, Math.max(70, home.length * 1.5 + 68));
     let awayRating = isUSAWvsGERW ? 86.8 : isUSAvsGER ? 88.6 : Math.min(93, Math.max(68, away.length * 1.5 + 66));
     
@@ -351,6 +409,65 @@ function getMockPrediction(
       environmentalAdjustments = `Severe summer temperature index. Pressing intensity (PPDA) scaled down by 15%, reducing the physical compression bounds. xG totals lowered by 15% to adjust for slower pacing.`;
     }
 
+    // 2. Pitch Moisture Adjustments (Slick/Wet vs Sticky/Dry)
+    if (moisture === "Wet/Raining") {
+      pitchFrictionTurf = `Slick/Wet Turf (Raining): Ball Velocity boosted by +15%. Fast ball glide, short-passing profiles enhanced. Traction penalty (-8%) applied to explosive dribblers.`;
+      homeRating = parseFloat((homeRating + 1.5).toFixed(1));
+      awayRating = parseFloat((awayRating + 1.5).toFixed(1));
+      environmentalAdjustments += " Slick/Wet turf: Ball velocity +15%. High-possession short-passing tactical styles gain velocity-precision advantage. -8% Agility penalty applied to directional dribblers.";
+    } else if (moisture === "Dry/Long Grass") {
+      pitchFrictionTurf = `Sticky/Dry Turf (Long Grass): Passing fluidity decreased by 12%. Transition styles penalised by rough turf drag. Compact Low-Blocks gain +7% defensive stabilization.`;
+      baseAdjustedXgHome = parseFloat((baseAdjustedXgHome * 0.90).toFixed(2));
+      baseAdjustedXgAway = parseFloat((baseAdjustedXgAway * 0.90).toFixed(2));
+      environmentalAdjustments += " Dry/Long Grass turf: Passing fluidity decreased by 12%. Fast-transition styles restricted by grass drag. Compact Low-Blocks gain +7% defensive stabilization boost.";
+    }
+
+    // 3. Climate Profiling: European nations playing in >30°C temperature
+    const euroCountries = ["germany", "england", "spain", "italy", "france", "belgium", "portugal", "sweden", "netherlands", "norway"];
+    const isHomeEuro = euroCountries.some(country => normalizedHome.includes(country));
+    const isAwayEuro = euroCountries.some(country => normalizedAway.includes(country));
+
+    let euroOriginNote = "";
+    if (temp > 30) {
+      if (isHomeEuro) {
+        homeRating = parseFloat((homeRating - 2.0).toFixed(1));
+        baseAdjustedXgHome = parseFloat((baseAdjustedXgHome * 0.90).toFixed(2));
+        euroOriginNote += `${home} (European Squad playing in >30°C heat) receives automatic baseline intensity downscaling. `;
+      }
+      if (isAwayEuro) {
+        awayRating = parseFloat((awayRating - 2.0).toFixed(1));
+        baseAdjustedXgAway = parseFloat((baseAdjustedXgAway * 0.90).toFixed(2));
+        euroOriginNote += `${away} (European Squad playing in >30°C heat) receives automatic baseline intensity downscaling. `;
+      }
+    }
+
+    // 4. Heat Fatigue & Pressing Drop-off
+    if (temp > 30) {
+      baseFatigueHome = parseFloat((baseFatigueHome * 1.45).toFixed(1));
+      baseFatigueAway = parseFloat((baseFatigueAway * 1.45).toFixed(1));
+
+      let pressNoticeHome = "";
+      let pressNoticeAway = "";
+      if (homePpda < 9.0) {
+        pressNoticeHome = "Home High-Pressing profile squad suffers 1.5x sharper drop-off in recovery runs after 60'.";
+        baseAdjustedXgAway = parseFloat((baseAdjustedXgAway * 1.08).toFixed(2));
+      }
+      if (awayPpda < 9.0) {
+        pressNoticeAway = "Away High-Pressing profile squad suffers 1.5x sharper drop-off in recovery runs after 60'.";
+        baseAdjustedXgHome = parseFloat((baseAdjustedXgHome * 1.08).toFixed(2));
+      }
+
+      climateAnalysis = `Extreme Heat Environment (${temp}°C / ${Math.round(temp * 1.8 + 32)}°F). ${euroOriginNote}${pressNoticeHome} ${pressNoticeAway}`;
+    } else {
+      climateAnalysis = `Favorable climate calibrated at ${temp}°C / ${Math.round(temp * 1.8 + 32)}°F. ${euroOriginNote}`;
+    }
+
+    // 5. Bench Dependency & Lineup validation
+    let validationVerdictText = "High lineup confidence metrics recorded.";
+    if (temp > 30) {
+      validationVerdictText = `High heat environment increase. Substitute & depth weight increased (+1.2x multiplier to Phase 7 parameter) - bench players dictate late 60-90' probability bounds.`;
+    }
+
     const margin = baseAdjustedXgHome - baseAdjustedXgAway;
     let winProbHome = Math.round(33 + margin * 30);
     let winProbAway = Math.round(33 - margin * 30);
@@ -374,18 +491,21 @@ function getMockPrediction(
       },
       matchdayContext: {
         venueStatus: venueStatusStr,
-        environmentalAdjustments: environmentalAdjustments,
-        venueInfluenceIndex: `Match scheduled at local kickoff ${activeKickoff}. Venue State environmental calibrations applied securely.`
+        environmentalAdjustments: environmentalAdjustments + (euroOriginNote ? " " + euroOriginNote : ""),
+        venueInfluenceIndex: `Match scheduled at local kickoff ${activeKickoff} with Pitch Moisture setting "${moisture}". Venue State environmental calibrations applied securely.`
       },
       explainabilityLayer: {
         positiveDrivers: [
           `+ Physical baseline adaptation coefficient (+8%)`,
           isHighAltitude ? `+ Long-range shooting capability (+5% due to ball flight physics)` : `+ Standard tactical structure integration (+5%)`,
-          `+ Central block compactness (+4%)`
+          moisture === "Wet/Raining" ? `+ Slick wet turf ball glide velocity (+15% speed factor)` : `+ Central block compactness (+4%)`,
+          moisture === "Dry/Long Grass" ? `+ Low-block defensive stabilization boost (+7% defensive hold)` : `+ Technical spacing index (+3%)`
         ],
         negativeFactors: [
           isHighAltitude && (!altitudeCampHome || !altitudeCampAway) ? `- Altitude hypobaric oxygen penalty active (-12% Stamina)` : `- Standard travel fatigue factor (-2%)`,
-          isHeatHumidityImpacted ? `- Summer thermal exhaustion threshold reached, slowing block pace (-15%)` : `- Baseline residual muscle fatigue (-3%)`
+          isHeatHumidityImpacted ? `- Summer thermal exhaustion threshold reached, slowing block pace (-15%)` : `- Baseline residual muscle fatigue (-3%)`,
+          moisture === "Dry/Long Grass" ? `- Long grass friction passing speed decay (-12% fluidity)` : `- General air friction (-1%)`,
+          moisture === "Wet/Raining" ? `- Slick pitch traction penalty (-8% agility for fast dribblers)` : `- Normal grass wear (-1%)`
         ]
       },
       whyNotEngine: {
@@ -416,19 +536,19 @@ function getMockPrediction(
       phase3TacticalEngine: {
         homeFormation: "4-3-3",
         awayFormation: "4-2-3-1",
-        homeTacticalStyle: "Gegenpress with elite transition width",
-        awayTacticalStyle: "Slow direct build-up utilizing central holdup",
+        homeTacticalStyle: moisture === "Wet/Raining" ? "High-tempo possession-passing counter-press (slick conditions)" : "Gegenpress with elite transition width",
+        awayTacticalStyle: moisture === "Dry/Long Grass" ? "Dense low-block counter defense (slowing grass transition)" : "Slow direct build-up utilizing central holdup",
         homePpda: homePpda,
         awayPpda: awayPpda,
-        formationStabilityScoreHome: 86,
-        formationStabilityScoreAway: 82,
+        formationStabilityScoreHome: moisture === "Dry/Long Grass" ? 93 : 86,
+        formationStabilityScoreAway: moisture === "Dry/Long Grass" ? 89 : 82,
         transitionVulnerabilityHome: "Vulnerable to rapid overlapping counters during wide transitions",
         transitionVulnerabilityAway: "Horizontal spaces exposed behind flat midfield pivots",
-        matchupAnalysis: "Tactical intensity adjusted. Pressing efficiency (PPDA) is structured to adapt directly to physical factors."
+        matchupAnalysis: `Tactical intensity adjusted. ${moisture === "Wet/Raining" ? "Short-passing possession style gets 15% velocity speedup." : moisture === "Dry/Long Grass" ? "Passing speed holds a -12% drag, favoring low block formations." : "Pressing efficiency is structured to adapt directly to physical factors."}`
       },
       phase4VenueEnvironment: {
-        weatherDetails: isHeatHumidityImpacted ? "Dry Heat Summer Wave, 92°F, 82% Humidity" : isHighAltitude ? "Cool dry air, 65°F, 35% humidity" : "Clear afternoon skies, 72°F",
-        weatherIcon: isHeatHumidityImpacted ? "sun" : isHighAltitude ? "cloud" : "sun",
+        weatherDetails: isHeatHumidityImpacted ? `Extreme Summer Heat, ${temp}°C / ${Math.round(temp * 1.8 + 32)}°F, High Humidity` : isHighAltitude ? `Cool dry air, ${temp}°C, 35% humidity` : `Calibrated conditions at ${temp}°C`,
+        weatherIcon: temp > 30 ? "sun" : isHighAltitude ? "cloud" : moisture === "Wet/Raining" ? "rain" : "sun",
         altitudeMeters: altitudeMeters,
         travelDistancePenaltyHome: "None (Fully acclimatized)",
         travelDistancePenaltyAway: "Low (Sub-3 hour transit line)",
@@ -440,10 +560,10 @@ function getMockPrediction(
       phase5SquadFatigueManager: {
         fatigueScoreHome: baseFatigueHome,
         fatigueScoreAway: baseFatigueAway,
-        congestionAnalysis: `Team Fatigue calibrated. ${isHighAltitude ? `Altitude fatigue penalty applied directly (+12% to un-acclimatized squads).` : `Congestion metrics within standard tournament thresholds.`}`,
+        congestionAnalysis: `Team Fatigue calibrated. ${temp > 30 ? `Heat-induced accelerating fatigue active (1.45x multiplier applied).` : `Congestion within normal bounds.`} ${isHighAltitude ? `Altitude fatigue penalty applied (+12% to un-acclimatized squads).` : ``}`,
         managerExperienceHome: "Experienced National Coach (85 rating)",
         managerExperienceAway: "Experienced National Coach (84 rating)",
-        managerDecisionImpact: "Stable tactical profiles lower the model variance limits."
+        managerDecisionImpact: temp > 30 ? "High-heat expands tactical substitute management impact. Sub bench quality becomes key driver of the late game." : "Stable tactical profiles lower the model variance limits."
       },
       phase6PsychologicalEngine: {
         motivationContextHome: "Intense desire to claim local World Cup fixture.",
@@ -454,15 +574,15 @@ function getMockPrediction(
         psychologicalAnalysis: "Extremely high professional focus and career pride factors active."
       },
       phase7MatchdayValidation: {
-        expectedVsConfirmedHome: "CONFIRMED: Normal Starting XI. Pre-match fitness checks passed.",
-        expectedVsConfirmedAway: "CONFIRMED: Standard squad starts. Roster depth is complete.",
+        expectedVsConfirmedHome: `CONFIRMED: Normal Starting XI. Pre-match fitness checks passed. ${temp > 30 ? "High depth roster readiness validated for late physical exhaustion." : ""}`,
+        expectedVsConfirmedAway: `CONFIRMED: Standard squad starts. Roster depth is complete. ${temp > 30 ? "Substitute benches will play 1.2x larger weight in simulation outcomes." : ""}`,
         lineupDisruptionScoreHome: -0.5,
         lineupDisruptionScoreAway: -0.6,
-        confirmedTacticalShiftHome: "None reported.",
-        confirmedTacticalShiftAway: "None reported.",
+        confirmedTacticalShiftHome: moisture === "Wet/Raining" ? "Short flat passing focus adjusted." : "None reported.",
+        confirmedTacticalShiftAway: moisture === "Dry/Long Grass" ? "Deeper compact alignment deployed." : "None reported.",
         suspensionsAndLateScrapes: "None detected.",
         personnelDeductionAnalysis: "Standard XI bodes for low disruption scores across model parameters.",
-        validationVerdict: "High lineup confidence metrics recorded."
+        validationVerdict: validationVerdictText
       },
       phase8MonteCarlo: {
         adjustedXgHome: baseAdjustedXgHome,
@@ -479,8 +599,8 @@ function getMockPrediction(
           { score: `${Math.ceil(baseAdjustedXgHome)} - ${Math.ceil(baseAdjustedXgAway)}`, probability: 8.9 }
         ],
         predictionConfidenceScore: 84,
-        predictionConfidenceExplanation: "Confidence rated high based on clean starting lineups and fully updated World Cup physical environmental constraints.",
-        simulationConfidenceInterval: "Poisson curve calculated across 10,000 algorithmic seed iterations."
+        predictionConfidenceExplanation: `Confidence rated high based on clean starting lineups. ${temp > 30 ? "High-heat substitute manager algorithms successfully calibrated for the 60'-90' curve." : ""}`,
+        simulationConfidenceInterval: simulationMode === "tier1" ? "Poisson curve calculated across fast-pass 500 macro-assessment iterations." : "Poisson curve calculated across 10,000 algorithmic seed iterations."
       },
       phase9ValueBetDetection: {
         marketOddsHome: winProbHome > 45 ? "-110" : "+180",
@@ -494,7 +614,7 @@ function getMockPrediction(
         edgeAway: winProbAway > 40 ? 5.2 : -2.1,
         edgeVerdict: "VALUE OPPORTUNITY",
         exactDiscrepancyExplanation: `STRATOS isolates custom environmental parameters (${
-          isHighAltitude ? "Altitude Ball Mechanics + Fatigue" : isHeatHumidityImpacted ? "15% Pacing/PPDA Decay" : "Indoor Climate Bypassing Heat"
+          isHighAltitude ? "Altitude Ball Mechanics + Fatigue" : temp > 30 ? "Acc Fatigue + Substitute Depth" : moisture !== "Standard" ? `Pitch Moisture: ${moisture}` : "Indoor Climate Bypassing Heat"
         }) which the general public markets under-represent.`,
         valueRecommendation: "Optimal pick: standard Moneyline selection or Draw No Bet representing substantial value."
       }
@@ -772,6 +892,45 @@ function getMockPrediction(
         edgeVerdict: "VALUE OPPORTUNITY",
         exactDiscrepancyExplanation: "The bookmakers heavily overweight Germany's name brand, completely ignoring transatlantic flight fatigue and resting starters. This yields a major 10.0% overlay edge on USA Moneyline.",
         valueRecommendation: "United States Moneyline or Draw No Bet (DNB) at +135 represents exceptional value with built-in draw protection."
+      },
+      stratosV2: {
+        matchStressReport: {
+          venueName: activeVenue,
+          localTime: activeKickoff + " local time",
+          roofStatus: isClimateControlled ? "Closed (Climate-Controlled)" : "Open-air",
+          environmentalStressIndex: temp > 32 ? "SEVERE" : temp > 22 ? "MODERATE" : "LOW",
+          temperatureCelsius: temp,
+          humidityPercentage: isHeatHumidityImpacted ? 85 : 55,
+          solarRadiation: kickoffHour >= 11 && kickoffHour <= 16 && !isClimateControlled ? "Peak (Afternoon Solar Threat)" : "None (Evening Kickoff)",
+          airQualityIndex: "Good (AQI 32)",
+          altitudeMeters: altitudeMeters,
+          haiHomeScore: altitudeCampHome ? 95 : 60,
+          haiHomePerformanceDrop: isHighAltitude && !altitudeCampHome ? 12 : 3,
+          haiAwayScore: altitudeCampAway ? 95 : 60,
+          haiAwayPerformanceDrop: isHighAltitude && !altitudeCampAway ? 12 : 3,
+          mostAffectedPositions: [
+            "Central Midfielders (-18% stamina wall at 60min)",
+            "Wingers & Fullbacks (-15% intensive transition wall)",
+            "Strikers (-10% pressing ceiling drop)",
+            "Center Backs (-7% recovery line delay)"
+          ],
+          substituteImportanceAnalysis: "High bench dependence active. Starting XI physical intensity decay shifts emphasis to late-game substitute rosters.",
+          travelDistanceMilesHome: 320,
+          travelDistanceMilesAway: 4120,
+          timeZoneDeltaHome: 0,
+          timeZoneDeltaAway: -6,
+          restDaysHome: 6,
+          restDaysAway: 5,
+          benchSustainabilityScoreHome: 86,
+          benchSustainabilityScoreAway: 78
+        },
+        valueBetOverlay: {
+          targetMarket: temp > 28 ? "Under 2.5 Goals (due to thermal match deceleration)" : "Home Draw-No-Bet (DNB)",
+          edgePercentage: temp > 28 ? 7.5 : 10.0,
+          calculatedOdds: temp > 28 ? "-115 (Decimal 1.87)" : "+144 (Decimal 2.44)",
+          marketOdds: temp > 28 ? "+110 (Decimal 2.10)" : "+222 (Decimal 3.22)",
+          verdict: "VALUE OPPORTUNITY"
+        }
       }
     };
   }
@@ -907,6 +1066,43 @@ function getMockPrediction(
       edgeVerdict: "MARKET ALIGNED",
       exactDiscrepancyExplanation: "No distinct value margin detected. Model results perfectly match public bookmaker estimates.",
       valueRecommendation: "Draw No Bet (DNB) for the Home side represents a stable protective option."
+    },
+    stratosV2: {
+      matchStressReport: {
+        venueName: venue || "Neutral Stadium / Main Ground",
+        localTime: kickoffTime || "15:00",
+        roofStatus: "Closed",
+        environmentalStressIndex: "LOW",
+        temperatureCelsius: matchTemperature || 20,
+        humidityPercentage: 50,
+        solarRadiation: "None",
+        airQualityIndex: "Good (AQI 28)",
+        altitudeMeters: 45,
+        haiHomeScore: 90,
+        haiHomePerformanceDrop: 2,
+        haiAwayScore: 90,
+        haiAwayPerformanceDrop: 2,
+        mostAffectedPositions: [
+          "Central Midfielders (Standard stamina curves)",
+          "Wingbacks & Outwide players"
+        ],
+        substituteImportanceAnalysis: "None. Standard match pacing and safe climate settings minimize fatigue impact.",
+        travelDistanceMilesHome: 150,
+        travelDistanceMilesAway: 240,
+        timeZoneDeltaHome: 0,
+        timeZoneDeltaAway: 0,
+        restDaysHome: 6,
+        restDaysAway: 6,
+        benchSustainabilityScoreHome: 80,
+        benchSustainabilityScoreAway: 80
+      },
+      valueBetOverlay: {
+        targetMarket: "Home Win or Draw",
+        edgePercentage: 1.5,
+        calculatedOdds: "+156 (2.56)",
+        marketOdds: "+156 (2.56)",
+        verdict: "MARKET ALIGNED"
+      }
     }
   };
 }
@@ -949,21 +1145,23 @@ app.get("/api/fixtures", (req, res) => {
 
 // Prediction Route with API fallback
 app.post("/api/predict", async (req, res) => {
-  const { homeTeam, awayTeam, venue, kickoffTime, altitudeCampHome, altitudeCampAway, isManualInput } = req.body;
+  const { homeTeam, awayTeam, venue, kickoffTime, altitudeCampHome, altitudeCampAway, pitchMoisture, matchTemperature, simulationMode, isManualInput } = req.body;
   if (!homeTeam || !awayTeam) {
     return res.status(400).json({ error: "homeTeam and awayTeam parameters are required" });
   }
 
+  const activeMode = simulationMode === "tier1" ? "tier1" : "tier2";
+
   // Gracefully handle missing API key or use of offline dummy key
   if (!API_KEY || API_KEY === "MY_GEMINI_API_KEY") {
-    console.log(`GEMINI_API_KEY is not set. Serving highly-structured 9-Phase mock result for: ${homeTeam} vs ${awayTeam}`);
-    const prediction = getMockPrediction(homeTeam, awayTeam, venue, kickoffTime, altitudeCampHome, altitudeCampAway);
-    return res.json({ prediction, isMock: true });
+    console.log(`GEMINI_API_KEY is not set. Serving highly-structured 9-Phase mock result for: ${homeTeam} vs ${awayTeam} with mode: ${activeMode}`);
+    const prediction = getMockPrediction(homeTeam, awayTeam, venue, kickoffTime, altitudeCampHome, altitudeCampAway, pitchMoisture, matchTemperature, activeMode);
+    return res.json({ prediction: { ...prediction, simulationMode: activeMode }, isMock: true });
   }
 
   try {
     const ai = getGeminiClient();
-    console.log(`Calling Gemini API (Stratos v2 Predictive Engine 9-Phase Core) for: ${homeTeam} vs ${awayTeam}`);
+    console.log(`Calling Gemini API (Stratos v2 Predictive Engine 9-Phase Core with ${activeMode}) for: ${homeTeam} vs ${awayTeam}`);
 
     const promptText = `
 You are STRATOS v2, an elite Football Intelligence and Predictive Decision Engine designed to uncover betting market inefficiencies by running a highly calibrated 9-Phase pipeline.
@@ -975,6 +1173,9 @@ Selected Match Venue: "${venue || "Soldier Field, Chicago, IL"}"
 Scheduled Kickoff Time: "${kickoffTime || "15:00"}"
 Home Team Altitude Training Prep (>14 days): ${altitudeCampHome ? "YES" : "NO"}
 Away Team Altitude Training Prep (>14 days): ${altitudeCampAway ? "YES" : "NO"}
+Pitch Moisture State: "${pitchMoisture || "Standard"}"
+Match Day Temperature Calibration: ${matchTemperature !== undefined ? matchTemperature : 22}°C (approx ${matchTemperature !== undefined ? Math.round(matchTemperature * 1.8 + 32) : 72}°F)
+SELECTED COMPUTATIONAL PASS ENGINE MODE: ${activeMode === 'tier1' ? 'Tier 1 - Browse Mode (fast-pass 500-iteration macro-assessment)' : 'Tier 2 - Deep Analysis Mode (comprehensive 10,000-pass Monte Carlo simulation)'}
 
 You MUST use Google Search tool to extract real-world, up-to-date lineup news, tactical setups, player fatigue metrics, injuries, and weather metrics. Evaluate the matches sequentially through these exact 9 phases:
 
@@ -984,18 +1185,27 @@ You MUST use Google Search tool to extract real-world, up-to-date lineup news, t
 
 ### ⚙️ SECTION II: CONTEXTUAL ENGINE MODIFIERS
 * **Phase 3: Tactical Engine & Formation Stability:** Analyze tactical matchups and calculate a "Formation Stability Score" from 0-100.
-* **Phase 4: Venue & Environment Index (World Cup 2026 Override):** 
+* **Phase 4: Venue & Environment Index (World Cup 2026 Override, Turf & Climate Calibration):** 
     - Automatically detect the specific host city venue and inject its physical traits into the matchup math:
         1. Altitude Penalty: If the venue is Mexico City or Guadalajara, apply a progressive -12% Stamina/Fatigue penalty (add +12 to the team's fatigue score) to any team that has not held a training camp at high altitude for >14 days. Increase long-range shooting success metrics by +5% due to ball physics adjustments.
         2. Heat/Humidity Index: If the venue is an open-air stadium in Houston, Miami, Kansas City, or Monterrey, and the kickoff time is before 6:00 PM local time, reduce the expected Pressing Intensity (PPDA) for both teams by 15% (increase the PPDA score number by 15% because pressing is slower/less intense) and lower the overall expected match goal total (Poisson adjustment for slower match pacing, reducing expected xG for both sides).
         3. Climate Control Check: If the match is in Dallas (AT&T Stadium) or Atlanta (Mercedes-Benz Stadium), bypass the summer heat penalty due to indoor climate control, but adjust the Turf Friction index for artificial surfaces.
-* **Phase 5: Squad Fatigue & Manager Impact:** Compute a Fatigue Score (0-100) based on recent match congestion and international minutes. Adjust model uncertainty based on the manager's profile experience/stability.
+        4. Slick/Wet Pitch Factor: If the pitch is marked as 'Wet/Raining', boost Ball Velocity by +15%. Increase the performance metrics of high-possession/short-passing tactical profiles. Conversely, apply a -8% Agility/Traction penalty to explosive, directional dribblers.
+        5. Sticky/Dry Pitch Factor: If the pitch is marked as 'Dry/Long Grass', decrease passing fluidity metrics by 12%. Penalize fast-transition teams and apply a +7% defensive stabilization boost to teams utilizing a compact Low-Block system.
+        6. Climate Profiling: Cross-reference club/national team origin with expected matchday temperature. European squads playing in temperatures >30°C receive an automatic baseline adjustment favoring lower overall match intensity (lower expected xG, slower tempo).
+* **Phase 5: Squad Fatigue & Heat Degradation Engine:** Modern physical fatigue engine.
+    - Compute a dynamic Fatigue Score (0-100) combining fixture congestion, international minutes, and climate conditions:
+        1. Heat Multiplier: If match temperature is >30°C (>86°F), apply an accelerating fatigue multiplier. Teams with a High-Pressing profile (low PPDA, e.g., PPDA < 9) will experience a 1.5x sharper drop-off in defensive actions and recovery runs after the 60th minute.
+        2. Bench Dependency: In high-heat environments (>30°C / >86°F), increase the statistical weight of "Phase 7: Matchday Validation Layer" regarding substitute depth quality, as mid-game management will heavily dictate the final 30 minutes of the match probability curve.
 * **Phase 6: Psychological Engine:** Evaluate situational stakes (World Cup elimination pressure, group-stage math, derby rivalries, or "dead rubber" fixtures).
 
 ### 🚨 SECTION III: MATCHDAY VALIDATION, SIMULATION & VALUE
-* **Phase 7: Matchday Validation Layer:** The final pre-kickoff reality check. Compare expected lineups to likely XI. Compute explicit point/rating deductions for missing personnel (e.g. key scorer out = attacking rating drops, reducing team xG by a calculated value).
+* **Phase 7: Matchday Validation Layer:** The final pre-kickoff reality check. Compare expected lineups to likely XI. Compute explicit point/rating deductions for missing personnel (e.g. key scorer out = attacking rating drops, reducing team xG by a calculated value). Specifically evaluate substitute depth and bench value if in high heat (>30°C).
 * **Phase 8: Monte Carlo Simulation & Confidence Engine:** Consume all finalized variables from Phases 1–7. Run 10,000 iterations to produce precise score curves. Simultaneously, compute a Prediction Confidence Score (0-100%) based on data availability, lineup changes, and sample sizes.
 * **Phase 9: Value Bet Detection Layer:** Compare STRATOS v2 probabilities against real-world bookmaker odds (Pinnacle, Bet365, Asian Handicaps). Identify and flag statistical discrepancies as either "VALUE OPPORTUNITY" or "MARKET ALIGNED" edgeVerdict, calculating precise home/draw/away edge percentage and optimal bet selection recommendation.
+* **STRATOS v2 Overlays:** Populate the 'stratosV2' object with ultimate data fidelity:
+    - 'matchStressReport': Conduct a deep biomechanical stress audit based on kickoff temperature, humidity profile, altitude meters, and training camp existence. Calculate the Physiological Heat/Altitude Adaptation Index (HAI, 0 to 100) where 100 is flawless acclimation, and estimate the expected percentage-based tactical drop-off for both teams (e.g., progressive Stamina penalties or rapid physical decay). List the tactical positions hit by physical exhaustion first (mostAffectedPositions) and write a detailed analytical review of physical bench sustainability/late substitute impact. Determine travel distances, time-zone boundaries, rest intervals, and bench sustainability rankings.
+    - 'valueBetOverlay': Calculate high-edge betting overlays, specifying the high-value target selection market (e.g., "Under 2.5 Goals", "Home DNB" or "Away +1.5 Asian Handicap"), model fair odds vs bookmaker odds, and the exact overlay gap percentage.
 
 Return a perfectly formatted raw JSON object conforming EXACTLY to the specified JSON schema. Do not wrap the JSON output inside any markdown code blocks. Returns raw JSON only.
 `;
@@ -1017,7 +1227,7 @@ Return a perfectly formatted raw JSON object conforming EXACTLY to the specified
   } catch (error: any) {
     console.error("Gemini API prediction error:", error);
     // Graceful fallback to guarantee user gets a projection instead of raw 500
-    const prediction = getMockPrediction(homeTeam, awayTeam, venue, kickoffTime, altitudeCampHome, altitudeCampAway);
+    const prediction = getMockPrediction(homeTeam, awayTeam, venue, kickoffTime, altitudeCampHome, altitudeCampAway, pitchMoisture, matchTemperature);
     return res.json({ prediction, isMock: true, apiError: error.message });
   }
 });

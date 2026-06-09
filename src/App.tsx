@@ -45,7 +45,8 @@ export default function App() {
   const [prediction, setPrediction] = useState<MatchPrediction | null>(null);
   const [isOfflineMock, setIsOfflineMock] = useState(false);
   const [apiWarning, setApiWarning] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'baselines' | 'tactical' | 'modifiers' | 'validation'>('dashboard');
+  const [simulationMode, setSimulationMode] = useState<'tier1' | 'tier2'>('tier2');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'baselines' | 'tactical' | 'modifiers' | 'validation' | 'stratosV2'>('dashboard');
   
   // Dynamic Football Feed state
   const [footballCategory, setFootballCategory] = useState<'mens' | 'womens'>('mens');
@@ -57,6 +58,8 @@ export default function App() {
   const [kickoffTime, setKickoffTime] = useState<string>('15:00'); // Kickoff pre 6:00 PM local
   const [altitudeCampHome, setAltitudeCampHome] = useState<boolean>(false);
   const [altitudeCampAway, setAltitudeCampAway] = useState<boolean>(false);
+  const [pitchMoisture, setPitchMoisture] = useState<string>('Standard');
+  const [matchTemperature, setMatchTemperature] = useState<number>(22);
 
   // 9-Phase Sequential Loading Logs for STRATOS v2 Engine calibration
   const loadingLogs = [
@@ -78,13 +81,21 @@ export default function App() {
     venueOverride?: string,
     kickoffOverride?: string,
     altHomeOverride?: boolean,
-    altAwayOverride?: boolean
+    altAwayOverride?: boolean,
+    moistureOverride?: string,
+    tempOverride?: number,
+    modeOverride?: 'tier1' | 'tier2'
   ) => {
     if (!home.trim() || !away.trim()) return;
     setLoading(true);
     setLoadingStep(0);
     setErrorMessage(null);
     setPrediction(null);
+
+    const activeMode = modeOverride || simulationMode;
+    const isTier1 = activeMode === 'tier1';
+    const tickSpeed = isTier1 ? 60 : 400;
+    const endTimeout = isTier1 ? 600 : 3600;
 
     // Dynamic loading interval for tactical suspense - 9 steps
     const interval = setInterval(() => {
@@ -95,12 +106,14 @@ export default function App() {
         }
         return prev + 1;
       });
-    }, 400);
+    }, tickSpeed);
 
     const matchVenue = venueOverride !== undefined ? venueOverride : selectedVenue;
     const kickoff = kickoffOverride !== undefined ? kickoffOverride : kickoffTime;
     const altHome = altHomeOverride !== undefined ? altHomeOverride : altitudeCampHome;
     const altAway = altAwayOverride !== undefined ? altAwayOverride : altitudeCampAway;
+    const moisture = moistureOverride !== undefined ? moistureOverride : pitchMoisture;
+    const temp = tempOverride !== undefined ? tempOverride : matchTemperature;
 
     try {
       const res = await fetch('/api/predict', {
@@ -112,7 +125,10 @@ export default function App() {
           venue: matchVenue,
           kickoffTime: kickoff,
           altitudeCampHome: altHome,
-          altitudeCampAway: altAway
+          altitudeCampAway: altAway,
+          pitchMoisture: moisture,
+          matchTemperature: temp,
+          simulationMode: activeMode
         }),
       });
 
@@ -130,7 +146,7 @@ export default function App() {
         setApiWarning(data.apiError || null);
         setLoading(false);
         setActiveTab('dashboard');
-      }, 3600);
+      }, endTimeout);
 
     } catch (err: any) {
       clearInterval(interval);
@@ -221,8 +237,10 @@ export default function App() {
               <div className="text-xs font-bold text-slate-300">Mode A vs B</div>
             </div>
             <div className="bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 font-mono text-center">
-              <div className="text-[10px] text-slate-500 uppercase">Monte Carlo</div>
-              <div className="text-xs font-bold text-emerald-400">10,000 Seeds</div>
+              <div className="text-[10px] text-slate-505 uppercase">Monte Carlo</div>
+              <div className={`text-xs font-bold ${simulationMode === 'tier1' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                {simulationMode === 'tier1' ? '500 Seeds' : '10,000 Seeds'}
+              </div>
             </div>
           </div>
         </div>
@@ -231,12 +249,42 @@ export default function App() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8" id="interaction-panel">
           
           {/* Preset Selector Panel */}
-          <div className="lg:col-span-4 bg-slate-950 border border-slate-900 rounded-xl p-5 space-y-5" id="presets-panel">
+          <div className="lg:col-span-4 bg-slate-950 border border-slate-900 rounded-xl p-5 space-y-4" id="presets-panel">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase font-mono">1. Select Match Case</h3>
               {isOfflineMock && (
-                <span className="text-[10px] bg-amber-500/10 text-amber-450 border border-amber-500/20 px-2 py-0.5 rounded font-mono">MOCK MODE</span>
+                <span className="text-[10px] bg-amber-500/10 text-amber-455 border border-amber-500/20 px-2 py-0.5 rounded font-mono">MOCK MODE</span>
               )}
+            </div>
+
+            {/* Computational Pass Engine Toggle (Tier 1 vs Tier 2) */}
+            <div className="space-y-1.5" id="simulation-tier-control">
+              <div className="flex bg-slate-900/40 p-1 rounded-lg border border-slate-900" id="simulation-mode-selector">
+                <button
+                  onClick={() => setSimulationMode('tier1')}
+                  className={`flex-1 py-1 text-xs font-mono font-semibold rounded transition-all text-center flex items-center justify-center gap-1 ${
+                    simulationMode === 'tier1'
+                      ? 'bg-amber-500 text-slate-950 shadow-md font-extrabold'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="500-iteration fast-pass macro-assessment"
+                >
+                  <CircleDot className="w-3.5 h-3.5" />
+                  <span>Tier 1: Browse (500)</span>
+                </button>
+                <button
+                  onClick={() => setSimulationMode('tier2')}
+                  className={`flex-1 py-1 text-xs font-mono font-semibold rounded transition-all text-center flex items-center justify-center gap-1 ${
+                    simulationMode === 'tier2'
+                      ? 'bg-emerald-505 bg-emerald-500 text-slate-950 shadow-md font-extrabold'
+                      : 'text-slate-405 text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="10,000-pass comprehensive Monte Carlo simulation"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>Tier 2: Deep (10k)</span>
+                </button>
+              </div>
             </div>
 
             {/* Gender/Category Filter Toggle */}
@@ -344,6 +392,55 @@ export default function App() {
                   <option value="15:00">Before 6:00 PM (3:00 PM) [Triggers Peak Summer Heat Penalties]</option>
                   <option value="20:00">After 6:00 PM (8:00 PM) [Bypasses Summer Heat Penalties]</option>
                 </select>
+              </div>
+
+              {/* Pitch Moisture State Option Selection */}
+              <div className="space-y-1.5" id="pitch-moisture-selector">
+                <label className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Pitch Moisture State</label>
+                <div className="grid grid-cols-3 gap-1 px-1 py-1 bg-slate-900 rounded border border-slate-900">
+                  {['Standard', 'Wet/Raining', 'Dry/Long Grass'].map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setPitchMoisture(opt)}
+                      className={`py-1 text-[10px] font-mono font-bold rounded text-center transition-all ${
+                        pitchMoisture === opt
+                          ? 'bg-emerald-500/15 text-emerald-405 border border-emerald-500/30 text-emerald-400'
+                          : 'text-slate-500 hover:text-slate-300 border border-transparent'
+                      }`}
+                    >
+                      {opt === 'Standard' ? 'Standard' : opt === 'Wet/Raining' ? 'Wet/Rain' : 'Dry/Grass'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dynamic Temperature Slider with Live Fahrenheit Translations Block */}
+              <div className="space-y-1.5 font-mono" id="temperature-slider-container">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-400">Matchday Temperature</label>
+                  <span className={`text-[11px] font-bold ${matchTemperature > 30 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                    {matchTemperature}°C / {Math.round(matchTemperature * 1.8 + 32)}°F
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 bg-slate-900 p-2.5 rounded border border-slate-900">
+                  <input
+                    type="range"
+                    min="10"
+                    max="40"
+                    step="1"
+                    value={matchTemperature}
+                    onChange={(e) => setMatchTemperature(parseInt(e.target.value))}
+                    className="flex-1 accent-emerald-500 cursor-pointer h-1 rounded-lg bg-slate-800"
+                  />
+                  <span className="text-[9px] font-bold uppercase select-none leading-none">
+                    {matchTemperature > 30 ? (
+                      <span className="text-amber-400">⚠️ Heat Penalty</span>
+                    ) : (
+                      <span className="text-slate-500">Perfect</span>
+                    )}
+                  </span>
+                </div>
               </div>
 
               {/* Altitude Preparatory Camp Switches */}
@@ -458,7 +555,9 @@ export default function App() {
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-slate-550">
                     <span className="font-mono text-slate-400 text-[10px]">STRATOS RE-ESTABLISHING MATRICES</span>
-                    <span className="font-mono text-emerald-400 text-[10px]">10,000 MONTE CARLO ITERATIONS SEEDED</span>
+                    <span className="font-mono text-emerald-400 text-[10px] uppercase">
+                      {simulationMode === 'tier1' ? '500 Fast-pass Iterations Seeded' : '10,000 Monte Carlo Iterations Seeded'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -504,7 +603,20 @@ export default function App() {
                 {/* Simulated Pitch Title Section */}
                 <div className="bg-slate-900/40 px-5 py-4 border-b border-slate-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" id="dashboard-header-match">
                   <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-mono tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-semibold border border-emerald-500/20">9-PHASE STRATOS CALIBRATION</span>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <span className="text-[10px] uppercase font-mono tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-semibold border border-emerald-500/20">9-PHASE STRATOS CALIBRATION</span>
+                      {prediction.simulationMode === 'tier1' ? (
+                        <span className="text-[10px] uppercase font-mono tracking-widest text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-semibold border border-amber-500/20 flex items-center gap-1">
+                          <CircleDot className="w-3 h-3 text-amber-400" />
+                          <span>Tier 1: 500 Runs</span>
+                        </span>
+                      ) : (
+                        <span className="text-[10px] uppercase font-mono tracking-widest text-emerald-505 bg-emerald-500/10 px-2 py-0.5 rounded font-semibold border border-emerald-500/20 flex items-center gap-1">
+                          <Zap className="w-3 h-3 text-emerald-400" />
+                          <span>Tier 2: 10,000 Runs</span>
+                        </span>
+                      )}
+                    </div>
                     <h3 className="text-base font-bold text-white flex items-center gap-2">
                       <span>{prediction.matchInfo.homeTeam}</span>
                       <span className="text-slate-600 font-mono text-xs">vs</span>
@@ -537,6 +649,12 @@ export default function App() {
                     className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'dashboard' ? 'border-emerald-500 text-emerald-450 bg-slate-900/20' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
                   >
                     Sim / Value (P8-9)
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('stratosV2')}
+                    className={`flex-1 text-center font-mono font-bold border-b-2 transition-all ${activeTab === 'stratosV2' ? 'border-amber-500 text-amber-500 bg-slate-900/20 font-semibold' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+                  >
+                    ★ STRATOS v2
                   </button>
                   <button 
                     onClick={() => setActiveTab('baselines')}
@@ -1196,6 +1314,421 @@ export default function App() {
 
                     </div>
                   )}
+
+                  {/* ====== TAB 6: PREMIUM STRATOS v2 MATCH DAY SYSTEM ====== */}
+                  {activeTab === 'stratosV2' && (() => {
+                    const s2 = prediction.stratosV2 || {
+                      matchStressReport: {
+                        venueName: prediction.matchInfo.venue,
+                        localTime: kickoffTime || "15:00",
+                        roofStatus: "Open-air Mode",
+                        environmentalStressIndex: "LOW" as const,
+                        temperatureCelsius: matchTemperature,
+                        humidityPercentage: pitchMoisture === "Wet/Raining" ? 85 : 55,
+                        solarRadiation: "Standard Solar Level",
+                        airQualityIndex: "Good (AQI 32)",
+                        altitudeMeters: prediction.matchInfo.venue.toLowerCase().includes("mexico") ? 2240 : prediction.matchInfo.venue.toLowerCase().includes("guada") ? 1566 : 100,
+                        haiHomeScore: 90,
+                        haiHomePerformanceDrop: prediction.matchInfo.venue.toLowerCase().includes("mexico") && !altitudeCampHome ? 12 : 2,
+                        haiAwayScore: 90,
+                        haiAwayPerformanceDrop: prediction.matchInfo.venue.toLowerCase().includes("mexico") && !altitudeCampAway ? 12 : 2,
+                        mostAffectedPositions: ["Central Midfielders", "Wingbacks"],
+                        substituteImportanceAnalysis: "High structural fatigue expected from high altitude or summer heat.",
+                        travelDistanceMilesHome: 300,
+                        travelDistanceMilesAway: 3000,
+                        timeZoneDeltaHome: 0,
+                        timeZoneDeltaAway: -5,
+                        restDaysHome: 6,
+                        restDaysAway: 5,
+                        benchSustainabilityScoreHome: 80,
+                        benchSustainabilityScoreAway: 80
+                      },
+                      valueBetOverlay: {
+                        targetMarket: "Draw-No-Bet",
+                        edgePercentage: 4.5,
+                        calculatedOdds: "+150",
+                        marketOdds: "+180",
+                        verdict: "VALUE OPPORTUNITY" as const
+                      }
+                    };
+                    return (
+                      <div className="space-y-6 animate-fade-in" id="stratos-v2-tab">
+                        
+                        {/* Section 1: MATCH STRESS REPORT */}
+                        <div className="space-y-3">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
+                            <span>SECTION 1: BIOMECHANICAL MATCH STRESS REPORT & AUDIT</span>
+                            <span className={`text-[10px] font-mono leading-none tracking-wider font-bold px-2 py-1 rounded border ${
+                              s2.matchStressReport.environmentalStressIndex === 'SEVERE'
+                                ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse'
+                                : s2.matchStressReport.environmentalStressIndex === 'MODERATE'
+                                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                            }`}>
+                              ESI Stress: {s2.matchStressReport.environmentalStressIndex}
+                            </span>
+                          </h4>
+
+                          {/* Venue Specific Details Grid */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div className="bg-slate-900/40 border border-slate-900 p-3 rounded-xl">
+                              <span className="text-[9px] text-slate-500 uppercase font-mono block mb-0.5">Audited Venue</span>
+                              <span className="text-xs font-bold text-slate-200">{s2.matchStressReport.venueName}</span>
+                            </div>
+                            <div className="bg-slate-900/40 border border-slate-900 p-3 rounded-xl">
+                              <span className="text-[9px] text-slate-500 uppercase font-mono block mb-0.5">Local Time Frame</span>
+                              <span className="text-xs font-bold text-slate-205">{s2.matchStressReport.localTime}</span>
+                            </div>
+                            <div className="bg-slate-900/40 border border-slate-900 p-3 rounded-xl">
+                              <span className="text-[9px] text-slate-500 uppercase font-mono block mb-0.5">Enclosure Structure</span>
+                              <span className="text-xs font-bold text-slate-205">{s2.matchStressReport.roofStatus}</span>
+                            </div>
+                          </div>
+
+                          {/* Meteorological Stress Parameters Row */}
+                          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+                            <div className="bg-slate-900/20 border border-slate-900 p-2.5 rounded-lg">
+                              <span className="text-[9px] text-slate-500 font-mono block uppercase mb-1">Temperature</span>
+                              <span className="text-sm font-extrabold text-slate-205 font-mono block">
+                                {s2.matchStressReport.temperatureCelsius}°C
+                                <span className="text-[10px] font-normal text-slate-550 block mt-0.5">({Math.round(s2.matchStressReport.temperatureCelsius * 1.8 + 32)}°F)</span>
+                              </span>
+                            </div>
+                            <div className="bg-slate-900/20 border border-slate-900 p-2.5 rounded-lg">
+                              <span className="text-[9px] text-slate-500 font-mono block uppercase mb-1">Humidity</span>
+                              <span className="text-sm font-extrabold text-indigo-400 font-mono block">
+                                {s2.matchStressReport.humidityPercentage}%
+                                <span className="text-[9px] font-normal text-slate-500 block mt-0.5 font-sans">Relative</span>
+                              </span>
+                            </div>
+                            <div className="bg-slate-900/20 border border-slate-900 p-2.5 rounded-lg">
+                              <span className="text-[9px] text-slate-500 font-mono block uppercase mb-1">Alt. Elevation</span>
+                              <span className="text-sm font-extrabold text-slate-205 font-mono block">
+                                {s2.matchStressReport.altitudeMeters}m
+                                <span className="text-[9px] font-normal text-slate-500 block mt-0.5">({Math.round(s2.matchStressReport.altitudeMeters * 3.28)} ft)</span>
+                              </span>
+                            </div>
+                            <div className="bg-slate-900/20 border border-slate-900 p-2.5 rounded-lg">
+                              <span className="text-[9px] text-slate-500 font-mono block uppercase mb-1">Solar Energy</span>
+                              <span className="text-xs font-bold text-amber-500 font-sans block truncate max-w-full" title={s2.matchStressReport.solarRadiation}>
+                                {s2.matchStressReport.solarRadiation}
+                                <span className="text-[9px] font-normal text-slate-500 block mt-0.5 font-mono">Radiation</span>
+                              </span>
+                            </div>
+                            <div className="bg-slate-900/20 border border-slate-900 p-2.5 rounded-lg">
+                              <span className="text-[9px] text-slate-500 font-mono block uppercase mb-1">Air Quality</span>
+                              <span className="text-xs font-bold text-emerald-450 font-sans block truncate max-w-full">
+                                {s2.matchStressReport.airQualityIndex}
+                                <span className="text-[9px] font-normal text-slate-500 block mt-0.5 font-mono">AQI Index</span>
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Physiological Heat/Altitude Adaptation Index (HAI) */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            
+                            {/* Home HAI */}
+                            <div className="bg-gradient-to-b from-slate-900/40 to-slate-950 border border-slate-900 rounded-xl p-4 space-y-3">
+                              <div className="flex justify-between items-center border-b border-slate-900 pb-2">
+                                <span className="text-[11px] font-bold font-mono text-emerald-400 uppercase tracking-widest">{prediction.matchInfo.homeTeam} HAI INDEX</span>
+                                <span className="text-xs font-bold font-mono text-slate-300">{s2.matchStressReport.haiHomeScore}/100</span>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <div className="relative w-14 h-14 shrink-0 flex items-center justify-center rounded-full bg-slate-950 border-2 border-slate-900">
+                                  <span className={`text-[11px] font-mono font-bold ${s2.matchStressReport.haiHomePerformanceDrop > 5 ? 'text-rose-455' : 'text-emerald-400'}`}>
+                                    -{s2.matchStressReport.haiHomePerformanceDrop}%
+                                  </span>
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[10px] text-slate-500 uppercase font-mono block">Physiological Impact Surcharge</span>
+                                  <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                                    {s2.matchStressReport.haiHomePerformanceDrop > 0 
+                                      ? `Expected -${s2.matchStressReport.haiHomePerformanceDrop}% baseline aerobic efficiency penalty. High altitude or heat exhaustion risks mapped.`
+                                      : "Acclimatization threshold met. Flawless physiological adaptation simulated."
+                                    }
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Away HAI */}
+                            <div className="bg-gradient-to-b from-slate-900/40 to-slate-950 border border-slate-900 rounded-xl p-4 space-y-3">
+                              <div className="flex justify-between items-center border-b border-slate-950 pb-2">
+                                <span className="text-[11px] font-bold font-mono text-emerald-400 uppercase tracking-widest">{prediction.matchInfo.awayTeam} HAI INDEX</span>
+                                <span className="text-xs font-bold font-mono text-slate-300">{s2.matchStressReport.haiAwayScore}/100</span>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <div className="relative w-14 h-14 shrink-0 flex items-center justify-center rounded-full bg-slate-950 border-2 border-slate-900">
+                                  <span className={`text-[11px] font-mono font-bold ${s2.matchStressReport.haiAwayPerformanceDrop > 5 ? 'text-rose-455' : 'text-emerald-400'}`}>
+                                    -{s2.matchStressReport.haiAwayPerformanceDrop}%
+                                  </span>
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[10px] text-slate-500 uppercase font-mono block">Physiological Impact Surcharge</span>
+                                  <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                                    {s2.matchStressReport.haiAwayPerformanceDrop > 0 
+                                      ? `Expected -${s2.matchStressReport.haiAwayPerformanceDrop}% baseline aerobic efficiency penalty. High altitude or heat exhaustion risks mapped.`
+                                      : "Acclimatization threshold met. Flawless physiological adaptation simulated."
+                                    }
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                          </div>
+
+                          {/* Logistics, Distance & rest delta */}
+                          <div className="bg-slate-900/40 border border-slate-900 rounded-xl p-4">
+                            <span className="text-[10px] font-mono uppercase text-slate-500 tracking-wider block mb-3 border-b border-slate-900 pb-1.5 font-bold">LOGISTICAL OVERLOAD SURCHARGES</span>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                              <div className="bg-slate-950 p-2.5 border border-slate-900 rounded">
+                                <span className="text-[9px] text-slate-500 uppercase font-mono block mb-0.5">Home Rest Period</span>
+                                <span className="font-extrabold text-slate-200 font-mono">{s2.matchStressReport.restDaysHome} Days Rest</span>
+                              </div>
+                              <div className="bg-slate-950 p-2.5 border border-slate-900 rounded">
+                                <span className="text-[9px] text-slate-500 uppercase font-mono block mb-0.5">Away Rest Period</span>
+                                <span className="font-extrabold text-slate-200 font-mono">{s2.matchStressReport.restDaysAway} Days Rest</span>
+                              </div>
+                              <div className="bg-slate-950 p-2.5 border border-slate-900 rounded">
+                                <span className="text-[9px] text-slate-500 uppercase font-mono block mb-0.5">Home Travel Distance</span>
+                                <span className="font-extrabold text-slate-200 font-mono">{s2.matchStressReport.travelDistanceMilesHome} Miles</span>
+                              </div>
+                              <div className="bg-slate-950 p-2.5 border border-slate-900 rounded">
+                                <span className="text-[9px] text-slate-500 uppercase font-mono block mb-0.5">Away Travel Distance</span>
+                                <span className="font-extrabold text-slate-200 font-mono">{s2.matchStressReport.travelDistanceMilesAway} Miles</span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 text-xs">
+                              <div className="bg-slate-950/60 p-2 border border-slate-900/50 rounded flex justify-between items-center px-3">
+                                <span className="text-slate-500 font-mono uppercase text-[9px]">Home Timezone Delta</span>
+                                <span className="font-bold text-slate-350">{s2.matchStressReport.timeZoneDeltaHome === 0 ? "No Jetlag (Iso-ground)" : `${s2.matchStressReport.timeZoneDeltaHome > 0 ? '+' : ''}${s2.matchStressReport.timeZoneDeltaHome} hrs`}</span>
+                              </div>
+                              <div className="bg-slate-950/60 p-2 border border-slate-900/50 rounded flex justify-between items-center px-3">
+                                <span className="text-slate-500 font-mono uppercase text-[9px]">Away Timezone Delta</span>
+                                <span className="font-bold text-slate-350">{s2.matchStressReport.timeZoneDeltaAway === 0 ? "No Jetlag" : `${s2.matchStressReport.timeZoneDeltaAway > 0 ? '+' : ''}${s2.matchStressReport.timeZoneDeltaAway} hrs delta`}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Tactical positions hit by physical exhaustion first & substitute analysis */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="bg-slate-900/20 border border-slate-900 p-4 rounded-xl space-y-3 md:col-span-1">
+                              <span className="text-[10px] font-mono uppercase text-amber-500 tracking-wider font-bold block border-b border-slate-900 pb-1.5 flex items-center gap-1">
+                                <ShieldAlert className="w-3.5 h-3.5" /> High exhaustion positions
+                              </span>
+                              <div className="flex flex-col gap-1.5">
+                                {s2.matchStressReport.mostAffectedPositions?.map((pos, idx) => (
+                                  <div key={idx} className="flex items-center gap-2 p-1.5 px-3 bg-rose-500/5 text-rose-300 rounded border border-rose-500/10 text-xs font-mono font-medium">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-rose-505 animate-pulse" />
+                                    <span>{pos}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="bg-slate-900/20 border border-slate-900 p-4 rounded-xl space-y-3 md:col-span-2 flex flex-col justify-between">
+                              <div className="space-y-1.5">
+                                <span className="text-[10px] font-mono uppercase text-indigo-400 tracking-wider font-bold block border-b border-slate-900 pb-1.5 flex items-center gap-1">
+                                  <Zap className="w-3.5 h-3.5" /> physical depth & substitution playbook
+                                </span>
+                                <p className="text-xs text-slate-300 leading-relaxed font-sans font-medium">
+                                  {s2.matchStressReport.substituteImportanceAnalysis}
+                                </p>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
+                                <div className="bg-slate-950 p-2.5 border border-slate-900 rounded">
+                                  <span className="text-[9px] text-slate-550 font-mono block mb-0.5">Home Bench Sustainability</span>
+                                  <span className="font-extrabold text-emerald-400 font-mono text-sm">{s2.matchStressReport.benchSustainabilityScoreHome}/100</span>
+                                </div>
+                                <div className="bg-slate-950 p-2.5 border border-slate-900 rounded">
+                                  <span className="text-[9px] text-slate-550 font-mono block mb-0.5">Away Bench Sustainability</span>
+                                  <span className="font-extrabold text-emerald-400 font-mono text-sm">{s2.matchStressReport.benchSustainabilityScoreAway}/100</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                        </div>
+
+                        {/* Section 2: THE EXPLAINABILITY LAYER (Top Drivers) */}
+                        <div className="space-y-3 pt-2">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
+                            <span>SECTION 2: STRATOS EXPLAINABILITY PANEL (DRIVERS & FATIGUE DROPS)</span>
+                            <span className="text-[10px] text-slate-500 font-mono font-bold">Non-linear physical adjustments</span>
+                          </h4>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Positive Drivers Grid */}
+                            <div className="bg-emerald-950/10 border border-emerald-950/20 rounded-xl p-4 space-y-3">
+                              <span className="text-[10px] uppercase font-mono font-bold text-emerald-400 block tracking-wider flex items-center gap-1.5 mb-1">
+                                📈 POSITIVE MODEL DRIVERS
+                              </span>
+                              <div className="space-y-2">
+                                {prediction.explainabilityLayer?.positiveDrivers?.map((driver, idx) => (
+                                  <div key={idx} className="flex items-start gap-2.5 bg-slate-950/40 p-2.5 rounded border border-emerald-900/30 text-xs text-slate-205 leading-relaxed font-sans">
+                                    <span className="text-emerald-400 font-bold font-mono">{(idx + 1).toString().padStart(2, "0")}.</span>
+                                    <span>{driver}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Negative Factors Grid */}
+                            <div className="bg-rose-955/5 border border-rose-950/15 rounded-xl p-4 space-y-3">
+                              <span className="text-[10px] uppercase font-mono font-bold text-rose-450 block tracking-wider flex items-center gap-1.5 mb-1">
+                                📉 CONSTRAINTS & SQUAD CORROSION FACTORS
+                              </span>
+                              <div className="space-y-2">
+                                {prediction.explainabilityLayer?.negativeFactors?.map((factor, idx) => (
+                                  <div key={idx} className="flex items-start gap-2.5 bg-slate-950/40 p-2.5 rounded border border-rose-950/15 text-xs text-slate-205 leading-relaxed font-sans">
+                                    <span className="text-rose-455 font-bold font-mono">{(idx + 1).toString().padStart(2, "0")}.</span>
+                                    <span>{factor}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 3: THE "WHY NOT?" ENGINE (Prediction Failure Conditions) */}
+                        <div className="space-y-3 pt-2">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
+                            <span>SECTION 3: THE "WHY NOT?" BREAKDOWN (MODEL SHIELD BREAKS)</span>
+                            <span className="text-[10px] text-slate-500 font-mono font-bold">Chaos thresholds</span>
+                          </h4>
+
+                          <div className="bg-slate-900/40 border border-slate-900 rounded-xl p-4 space-y-3">
+                            <span className="text-[10px] uppercase font-mono font-bold text-indigo-400 block tracking-wider mb-1">
+                              TACTICAL FAILURES OR RANDOM EXOGENOUS CRITICAL ANCHORS:
+                            </span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs leading-relaxed">
+                              {prediction.whyNotEngine?.failureConditions?.map((cond, idx) => (
+                                <div key={idx} className="flex gap-3 bg-slate-950 p-3 rounded border border-slate-900 items-start">
+                                  <div className="w-5 h-5 bg-indigo-500/10 text-indigo-400 shrink-0 font-mono rounded flex items-center justify-center font-bold text-[10px]">
+                                    !
+                                  </div>
+                                  <p className="font-sans font-medium text-slate-350 leading-relaxed">{cond}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 4: STRATOS METRIC MATRIX (Match Day Outcomes & Confidence) */}
+                        <div className="space-y-3 pt-2">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-950 pb-2">
+                            <span>SECTION 4: STRATOS METRIC OUTCOMES & METRIC COUPLING MATRIX</span>
+                            <span className="text-[10px] text-slate-500 font-mono font-bold">Outcome probabilities</span>
+                          </h4>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            
+                            {/* Projections */}
+                            <div className="bg-slate-900/20 border border-slate-900 p-4 rounded-xl space-y-3">
+                              <span className="text-[10px] uppercase font-mono font-bold text-slate-505 block border-b border-slate-900 pb-1 mb-2">Adjusted Outright Projections</span>
+                              <div className="space-y-2 text-xs font-mono">
+                                <div className="flex justify-between items-center p-2 bg-slate-950/40 rounded border border-slate-900">
+                                  <span>{prediction.matchInfo.homeTeam} Win</span>
+                                  <span className="font-bold text-emerald-400">{prediction.phase8MonteCarlo.winProbabilityHome}%</span>
+                                </div>
+                                <div className="flex justify-between items-center p-2 bg-slate-950/40 rounded border border-slate-900">
+                                  <span>Draw Chance</span>
+                                  <span className="font-bold text-amber-500">{prediction.phase8MonteCarlo.winProbabilityDraw}%</span>
+                                </div>
+                                <div className="flex justify-between items-center p-2 bg-slate-950/40 rounded border border-slate-900">
+                                  <span>{prediction.matchInfo.awayTeam} Win</span>
+                                  <span className="font-bold text-blue-400">{prediction.phase8MonteCarlo.winProbabilityAway}%</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Confidence rating */}
+                            <div className="bg-slate-900/20 border border-slate-900 p-4 rounded-xl space-y-3">
+                              <span className="text-[10px] uppercase font-mono font-bold text-slate-500 block border-b border-slate-900 pb-1 mb-2 font-bold">Calibration Limits & Confidence</span>
+                              <div className="space-y-2 flex flex-col justify-between h-24">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs text-slate-400">Confidence Score</span>
+                                  <span className="text-xs font-bold text-emerald-450 bg-emerald-500/10 px-2.5 py-0.5 rounded font-mono border border-emerald-500/20 font-bold">
+                                    {prediction.phase8MonteCarlo.predictionConfidenceScore}% Accuracy Expected
+                                  </span>
+                                </div>
+                                <p className="text-[11px] leading-relaxed text-slate-400 italic font-sans">
+                                  {prediction.phase8MonteCarlo.predictionConfidenceExplanation}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Projections scorelines */}
+                            <div className="bg-slate-900/20 border border-slate-900 p-4 rounded-xl space-y-3 font-mono">
+                              <span className="text-[10px] uppercase font-mono font-bold text-slate-500 block border-b border-slate-900 pb-1 mb-2">Likeliest Poisson Scorelines</span>
+                              <div className="space-y-2 text-xs">
+                                {prediction.phase8MonteCarlo.scorelineProjections?.slice(0, 3).map((p, idx) => (
+                                  <div key={idx} className="flex justify-between items-center p-2 bg-slate-950/40 rounded border border-slate-900 font-mono">
+                                    <span className={idx === 0 ? "text-emerald-400 font-bold" : "text-slate-400"}>#{idx+1} Scoreline: {p.score}</span>
+                                    <span className="font-bold text-slate-205">{p.probability}%</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+
+                        {/* Section 5: VALUE BET DETECTION OVERLAY */}
+                        <div className="space-y-3 pt-2">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between border-b border-slate-900 pb-2">
+                            <span>SECTION 5: VALUE BET DETECTION & OVERLAY ALIGNMENT</span>
+                            <span className={`text-[10px] font-mono leading-none tracking-wider font-bold px-2.5 py-1 rounded border ${
+                              s2.valueBetOverlay.verdict === 'VALUE OPPORTUNITY'
+                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                                : 'bg-slate-800 text-slate-400 border-slate-700'
+                            }`}>
+                              {s2.valueBetOverlay.verdict === 'VALUE OPPORTUNITY' ? '🟢 VALUE OPPORTUNITY' : '⚪ MARKET ALIGNED'}
+                            </span>
+                          </h4>
+
+                          <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/15 border border-amber-500/35 rounded-xl p-5 space-y-4">
+                            
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-900 pb-3">
+                              <div className="space-y-1">
+                                <span className="text-[9px] uppercase font-mono text-amber-400 font-bold tracking-widest block">STRATOS REAL MARKET OVERLAY ADVANCEMENTS</span>
+                                <h5 className="text-sm font-bold text-white font-mono flex items-center gap-1.5">
+                                  <Target className="w-4 h-4 text-amber-500 shrink-0" />
+                                  <span>Suggested Action Slates: <span className="text-amber-400 font-normal">{s2.valueBetOverlay.targetMarket}</span></span>
+                                </h5>
+                              </div>
+                              <div className="bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3.5 py-1.5 rounded-lg text-center font-mono shrink-0">
+                                <span className="text-[9px] block uppercase text-amber-500 font-bold mb-0.5">Calculated Edge</span>
+                                <span className="text-base font-bold font-mono text-amber-400">+{s2.valueBetOverlay.edgePercentage}% Overlay</span>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 text-center">
+                              <div className="bg-slate-950 p-3.5 border border-slate-900 rounded-lg">
+                                <span className="text-[9px] text-slate-500 font-mono uppercase block mb-1">STRATOS Derived Fair Odds</span>
+                                <span className="text-base font-extrabold text-emerald-400 font-mono block tracking-tight">{s2.valueBetOverlay.calculatedOdds}</span>
+                              </div>
+                              <div className="bg-slate-950 p-3.5 border border-slate-900 rounded-lg">
+                                <span className="text-[9px] text-slate-500 font-mono uppercase block mb-1">Public Bookmaker (Commercial) Odds</span>
+                                <span className="text-base font-extrabold text-slate-200 font-mono block tracking-tight">{s2.valueBetOverlay.marketOdds}</span>
+                              </div>
+                            </div>
+
+                            <div className="bg-slate-950 p-3 flex items-center gap-3 border border-slate-900 rounded-xl">
+                              <div className="p-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg shrink-0">
+                                <TrendingUp className="w-4 h-4 text-amber-500" />
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500 font-bold block">Expected Value (EV+) Action Protocol</span>
+                                <p className="text-xs font-bold text-slate-100 font-sans">{prediction.phase9ValueBetDetection.valueRecommendation}</p>
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+
+                      </div>
+                    );
+                  })()}
 
                 </div>
 
