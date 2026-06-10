@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { MatchPrediction } from './types';
 import ReactMarkdown from 'react-markdown';
+import { LiveMatchTicker } from './components/LiveMatchTicker';
 
 
 export default function App() {
@@ -87,7 +88,12 @@ export default function App() {
     altAwayOverride?: boolean,
     moistureOverride?: string,
     tempOverride?: number,
-    modeOverride?: 'tier1' | 'tier2'
+    modeOverride?: 'tier1' | 'tier2',
+    liveContextParams?: {
+      current_minute: number;
+      current_score: string;
+      match_context: string;
+    }
   ) => {
     if (!home.trim() || !away.trim()) return;
     setLoading(true);
@@ -131,7 +137,10 @@ export default function App() {
           altitudeCampAway: altAway,
           pitchMoisture: moisture,
           matchTemperature: temp,
-          simulationMode: activeMode
+          simulationMode: activeMode,
+          current_minute: liveContextParams?.current_minute,
+          current_score: liveContextParams?.current_score,
+          match_context: liveContextParams?.match_context
         }),
       });
 
@@ -1895,6 +1904,54 @@ export default function App() {
         <p>© 2026 Stratos Football Modelling Framework. All projections calculated securely with 10k Poisson Monte Carlo seeds.</p>
         <p className="font-mono text-[10px] text-slate-650">Gemini model grounding enabled via official Google Search capabilities.</p>
       </footer>
+
+      <LiveMatchTicker 
+        onMatchSelect={(match) => {
+          setHomeTeamInput(match.homeTeam);
+          setAwayTeamInput(match.awayTeam);
+          
+          let minVal = 45;
+          if (match.minute === 'HT') {
+            minVal = 45;
+          } else if (match.minute === 'FT') {
+            minVal = 90;
+          } else if (match.minute.includes('+')) {
+            const parts = match.minute.split('+');
+            minVal = (parseInt(parts[0], 10) || 45) + (parseInt(parts[1], 10) || 0);
+          } else {
+            minVal = parseInt(match.minute, 10) || 45;
+          }
+
+          let contextText = `${match.homeTeam} vs ${match.awayTeam} dynamic sparring in the ${match.minute}' minute at ${match.homeScore}-${match.awayScore}.`;
+          
+          if (match.homeTeam === 'Spain' && match.awayTeam === 'Germany') {
+            contextText = "Spain preserving lead, moving into a controlled mid-block structure [Phase 7 Tournament Strategy Modification active].";
+          } else if (match.homeTeam === 'Sweden' && match.awayTeam === 'USA') {
+            contextText = "USA dynamic overload attacking sequences, Sweden responding with compact zonal low-block containment [Phase 4 Tactician Offset active].";
+          } else if (match.homeTeam === 'Mexico' && match.awayTeam === 'France') {
+            contextText = "Mexico high-altitude pressing strategy seeking early second half breakthroughs, France adjusting tempo [Phase 6 Climate Adaptation model calibrating].";
+          } else if (match.homeTeam === 'Brazil' && match.awayTeam === 'Japan') {
+            contextText = "Brazil managing game phase tempo with deep possession cycles; Japan launching aggressive direct transitions [Phase 8 Psychology Matrix activated].";
+          }
+
+          handlePredict(
+            match.homeTeam,
+            match.awayTeam,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              current_minute: minVal,
+              current_score: `${match.homeScore}-${match.awayScore}`,
+              match_context: contextText
+            }
+          );
+        }} 
+      />
     </div>
   );
 }

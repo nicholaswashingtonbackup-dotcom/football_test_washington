@@ -365,7 +365,10 @@ function getMockPrediction(
   altitudeCampAway?: boolean,
   pitchMoisture?: string,
   matchTemperature?: number,
-  simulationMode?: string
+  simulationMode?: string,
+  current_minute?: number,
+  current_score?: string,
+  match_context?: string
 ): any {
   const normalizedHome = home.toLowerCase();
   const normalizedAway = away.toLowerCase();
@@ -470,7 +473,7 @@ function getMockPrediction(
   if (homeProb < 10) homeProb = 10;
   if (awayProb < 10) awayProb = 10;
   if (drawProb < 10) drawProb = 10;
-  const tot = homeProb + awayProb + drawProb;
+  let tot = homeProb + awayProb + drawProb;
   if (tot !== 100) homeProb += (100 - tot);
 
   let confidenceScore = isWomen ? 88 : 82;
@@ -489,8 +492,60 @@ function getMockPrediction(
   let valMarginD = 0.5;
   let valMarginA = awayProb > 40 ? 6.4 : -2.5;
 
+  const isLiveInPlay = current_minute !== undefined && current_score !== undefined;
+  if (isLiveInPlay) {
+    const lHome = normalizedHome;
+    const lAway = normalizedAway;
+    if (lHome.includes("spain") && lAway.includes("germany")) {
+      homeProb = 71;
+      drawProb = 21;
+      awayProb = 8;
+    } else if (lHome.includes("sweden") && lAway.includes("usa")) {
+      homeProb = 6;
+      drawProb = 16;
+      awayProb = 78;
+    } else if (lHome.includes("mexico") && lAway.includes("france")) {
+      homeProb = 44;
+      drawProb = 28;
+      awayProb = 28;
+    } else if (lHome.includes("brazil") && lAway.includes("japan")) {
+      homeProb = 94;
+      drawProb = 5;
+      awayProb = 1;
+    } else {
+      let currentHomeGoals = 0;
+      let currentAwayGoals = 0;
+      if (current_score) {
+        const scores = current_score.split("-");
+        currentHomeGoals = parseInt(scores[0], 10) || 0;
+        currentAwayGoals = parseInt(scores[1], 10) || 0;
+      }
+      if (currentHomeGoals > currentAwayGoals) {
+        homeProb = Math.round(60 + (current_minute / 2.2));
+        awayProb = Math.max(2, Math.round(20 - (current_minute / 4.4)));
+        drawProb = 100 - homeProb - awayProb;
+      } else if (currentAwayGoals > currentHomeGoals) {
+        awayProb = Math.round(60 + (current_minute / 2.2));
+        homeProb = Math.max(2, Math.round(20 - (current_minute / 4.4)));
+        drawProb = 100 - homeProb - awayProb;
+      } else {
+        drawProb = Math.round(50 + (current_minute / 2.2));
+        homeProb = Math.round((100 - drawProb) / 2);
+        awayProb = 100 - drawProb - homeProb;
+      }
+    }
+    
+    confidenceScore = 93;
+    calculatedOddsH = homeProb >= 99 ? "+101" : `+${Math.round((100 / homeProb - 1) * 100)}`;
+    calculatedOddsD = drawProb >= 99 ? "+101" : `+${Math.round((100 / drawProb - 1) * 100)}`;
+    calculatedOddsA = awayProb >= 99 ? "+101" : `+${Math.round((100 / awayProb - 1) * 100)}`;
+    
+    valMarginH = homeProb > 40 ? 5.2 : 1.2;
+    valMarginA = awayProb > 40 ? 5.8 : 1.5;
+  }
+
   // Force NO EDGE state for neutral fallback matches to demonstrate the "No Bet" guardrail!
-  const isNeutralFallback = !normalizedHome.includes("usa") && !normalizedHome.includes("united states") && !normalizedHome.includes("germany") && !normalizedHome.includes("france") && !normalizedHome.includes("colombia") && !normalizedHome.includes("england");
+  const isNeutralFallback = !isLiveInPlay && !normalizedHome.includes("usa") && !normalizedHome.includes("united states") && !normalizedHome.includes("germany") && !normalizedHome.includes("france") && !normalizedHome.includes("colombia") && !normalizedHome.includes("england");
   if (isNeutralFallback) {
     confidenceScore = 48; // drops below 50% to trigger the guardrail!
     valMarginH = 1.0;
@@ -513,6 +568,64 @@ function getMockPrediction(
 
   const formattedCalculatedOdds = `Home: ${calculatedOddsH}, Draw: ${calculatedOddsD}, Away: ${calculatedOddsA}`;
   const formattedBookmakerOdds = `Home: ${bookmakerOddsH}, Draw: ${bookmakerOddsD}, Away: ${bookmakerOddsA}`;
+
+  function getFederation(team: string): string {
+    const t = team.toLowerCase();
+    if (t.includes("usa") || t.includes("united states") || t.includes("mexico") || t.includes("canada")) {
+      return "CONCACAF";
+    }
+    if (t.includes("germany") || t.includes("spain") || t.includes("france") || t.includes("england") || t.includes("italy") || t.includes("belgium") || t.includes("sweden")) {
+      return "UEFA";
+    }
+    if (t.includes("brazil") || t.includes("argentina") || t.includes("uruguay") || t.includes("colombia")) {
+      return "CONMEBOL";
+    }
+    if (t.includes("japan") || t.includes("korea") || t.includes("australia")) {
+      return "AFC";
+    }
+    return "FIFA";
+  }
+
+  function getHeatAdaptation(team: string): number {
+    const t = team.toLowerCase();
+    if (t.includes("brazil") || t.includes("colombia") || t.includes("mexico")) return 92;
+    if (t.includes("usa") || t.includes("united states") || t.includes("spain") || t.includes("argentina") || t.includes("uruguay")) return 85;
+    if (t.includes("germany") || t.includes("france") || t.includes("england") || t.includes("italy") || t.includes("belgium") || t.includes("canada") || t.includes("sweden")) return 74;
+    return 80;
+  }
+
+  const homeFed = getFederation(home);
+  const awayFed = getFederation(away);
+  
+  let clashScore = 75;
+  let stylisticBias = "Standard stylistic clash.";
+  if (homeFed !== awayFed) {
+    if ((homeFed === "CONMEBOL" && awayFed === "UEFA") || (homeFed === "UEFA" && awayFed === "CONMEBOL")) {
+      clashScore = 92;
+      stylisticBias = "Aggressive high-pressing CONMEBOL direct vertical transitions Clash [historical_regional_friction.historical_matchup_bias] with compact UEFA positional structures [historical_regional_friction.historical_matchup_bias].";
+    } else if ((homeFed === "CONCACAF" && awayFed === "UEFA") || (homeFed === "UEFA" && awayFed === "CONCACAF")) {
+      clashScore = 84;
+      stylisticBias = "High-tempo transitions from CONCACAF [historical_regional_friction.historical_matchup_bias] seeking to break UEFA tactical rhythm and possession-reliance blocks [historical_regional_friction.historical_matchup_bias].";
+    } else if ((homeFed === "CONMEBOL" && awayFed === "AFC") || (homeFed === "AFC" && awayFed === "CONMEBOL")) {
+      clashScore = 80;
+      stylisticBias = "Slick, disciplined organization and rapid direct counterattacks from AFC [historical_regional_friction.historical_matchup_bias] colliding with creative spaces and flow of CONMEBOL [historical_regional_friction.historical_matchup_bias].";
+    } else {
+      clashScore = 82;
+      stylisticBias = `Clash of different federation structural philosophies: ${homeFed} vs ${awayFed} [historical_regional_friction.historical_matchup_bias].`;
+    }
+  } else {
+    clashScore = 45;
+    stylisticBias = `Intra-federation matchup (${homeFed} vs ${awayFed}) featuring high familiarity and standard low-friction tactical configurations [historical_regional_friction.historical_matchup_bias].`;
+  }
+
+  const heatStressIndex = (temp + (humidity * 0.1) - (isClimateControlled ? 5 : 0)).toFixed(1);
+  const heatHome = getHeatAdaptation(home);
+  const heatAway = getHeatAdaptation(away);
+
+  const liveUpdateNarrativeSnippet = isLiveInPlay ? `* **⚠️ IN-PLAY LIVE UPDATE INDEX:** State: LIVE at ${current_minute}' | Score: ${current_score} 
+* **Live Match Context:** ${match_context}` : "";
+
+  const tacticalCohesionSnippet = isLiveInPlay ? `Recalculating remainder of the match (${90 - (current_minute || 45) > 0 ? 90 - (current_minute || 45) : 0} minutes remaining) from the current in-play state. Tactical context feedback: "${match_context}".` : `The Home Team exhibits stable chemistry with a high starting XI continuity of ${startingXiContinuityHomeVal}/100 and manager tenure of ${coachTenureMonthsHomeVal} months. This offers a robust defensive anchor compared to the Away Team's ${startingXiContinuityAwayVal}/100 continuity and shorter manager tenure of ${coachTenureMonthsAwayVal} months. Combined with a rest disparity of ${daysRestHomeVal} days against ${daysRestAwayVal} days, early possession control is simulated to heavily favor the home side.`;
 
   return {
     matchInfo: {
@@ -714,39 +827,33 @@ function getMockPrediction(
         targetMarketSelection: targetMarket
       }
     },
-    cognitiveNarrative: `### 1. STRATOS MATCH STRESS & CONTEXT INTEGRITY
-* **Fixture Blueprint:** ${home} vs ${away} | ${compContext} | Gender Slate: ${genderSlate}
-* **Data Quality Index:** ${dataQualityScoreVal}/100 (Lineups are Projected)
-* **Environmental Stress Index (ESI):** ${temp > 30 ? "SEVERE" : temp > 22 ? "MODERATE" : "LOW"} (Temp: ${temp}°C, Humidity: ${humidity}%, Altitude: ${altitudeMeters}m, Roof: ${isClimateControlled ? "CLOSED" : "OPEN_AIR"})
-* **Logistical Friction:** Rest Discrepancy: ${daysRestHomeVal} Days vs ${daysRestAwayVal} Days | Market Drift: 2.15%
+    cognitiveNarrative: `### 1. STRATOS SYSTEM DATA INTEGRITY AUDIT
+* **Active Fixture Profile:** ${home} vs ${away} | Mode: ${isNeutralFallback ? "Tier 1 - Browse Mode (fast-pass 500-iteration macro-assessment)" : "Tier 2 - Deep Analysis Mode (comprehensive 10,000-pass Monte Carlo simulation)"} | Gender Slate: ${genderSlate}
+* **Telemetry Quality Index:** ${dataQualityScoreVal}/100 (Cache Age: ${isLiveInPlay ? "12" : "null"}s | Live Trigger: ${isLiveInPlay ? "PENALTY_CALIBRATION" : "null"})
+* **Live In-Play Board:** ${isLiveInPlay ? current_score : "0-0"} (Minute: ${isLiveInPlay ? current_minute : "0"}' | Halftime Score: ${isLiveInPlay ? (current_minute >= 45 ? "1-0" : "0-0") : "0-0"})
 
-### 2. SQUAD COHESION & RESILIENCE PROFILES
-* **Home Squad Chemistry:** Continuity Score: ${startingXiContinuityHomeVal}/100 | Manager Tenure: ${coachTenureMonthsHomeVal} Months
-* **Away Squad Chemistry:** Continuity Score: ${startingXiContinuityAwayVal}/100 | Manager Tenure: ${coachTenureMonthsAwayVal} Months
-* **Tactical Cohesion Synthesis:** The Home Team exhibits stable chemistry with a high starting XI continuity of ${startingXiContinuityHomeVal}/100 and manager tenure of ${coachTenureMonthsHomeVal} months. This offers a robust defensive anchor compared to the Away Team's ${startingXiContinuityAwayVal}/100 continuity and shorter manager tenure of ${coachTenureMonthsAwayVal} months. Combined with a rest disparity of ${daysRestHomeVal} days against ${daysRestAwayVal} days, early possession control is simulated to heavily favor the home side.
+### 2. HISTORICAL REGIONAL FRICTION & STYLISTIC ANALYSIS
+* **Federation Structural Profiles:** ${homeFed} vs ${awayFed} | Matchup Clash Score: ${clashScore}/100
+* **Style Compatibility Narrative:** ${stylisticBias}
 
-### 3. THE EXPLAINABILITY LAYER (Grounded Metric Drivers)
+### 3. LIVE CLIMATE DEGRADATION LOGS (Minutes 60-90 Matrix)
+* **Match Venue Climate Matrix:** Venue: ${activeVenue} | Heat Stress Index: ${heatStressIndex}°C
+* **Late-Game Stamina Drop-Off:** At ${temp}°C, the Heat Stress Index of ${heatStressIndex}°C triggers metabolic demand. ${home} (Heat Adaptation: ${heatHome}%) of ${homeFed} manages thermal weathering compared to ${away} (Heat Adaptation: ${heatAway}%) of ${awayFed}, creating late-game fatigue gaps (Minutes 60-90) and scoreline variances.
+
+### 4. THE EXPLAINABILITY LAYER (Grounded Metric Drivers)
 * **Positive Engine Drivers:**
-    1. Foundational team power baseline rating superiority [homeElo]
-    2. Elevated squad starting lineup continuity index [starting_xi_continuity_home]
+    1. Foundational team power baseline rating superiority (Home Team Strength [phase1EloStrength.homeElo])
+    2. Elevated squad starting lineup chemistry index (Starting XI Chemistry [matchdayContext.starting_xi_continuity_home])
 * **Negative Engine Factors:**
-    1. Compressed training and recovery rest duration for the guest side [days_rest_away]
-    2. Dynamic thermal fatigue from elevated temperature threshold [climateDecayFactorAway]
+    1. Compressed training and recovery rest duration (Guest Rest Discrepancy [matchdayContext.days_rest_away])
+    2. Dynamic thermal fatigue decay factor (Away Climate Decay [phase6ClimateAdaptation.climateDecayFactorAway])
 
-### 4. REFEREE & IN-MATCH CRISIS PROFILE
-* **Official Match Referee:** Szymon Marciniak
-* **Disciplinary Profile:** Card Average: 4.8 | Penalty Rate: 24.50%
-* **Tactical Impact Narrative:** Referee Szymon Marciniak represents a major enforcement profile whose card average of 4.8 and penalty rate of 24.50% will penalize physical fatigue highly. In high-stamina weathering blocks (minutes 60-90), transition defense will face elevated card accumulation risks under environmental stress indices.
-
-### 5. FINAL SIMULATION MATRIX & VALUE VERDICT
+### 5. FINAL IN-PLAY SIMULATION PROJECTIONS & VALUE OVERLAY
 * **STRATOS Probabilities:** Home Win ${homeProb}% | Draw ${drawProb}% | Away Win ${awayProb}%
 * **Prediction Confidence Rating:** ${stratosConfidenceScoreVal}%
-* **Top 3 Poisson Distributions:**
-    * ${Math.ceil(baseAdjustedXgHome)} - ${Math.floor(baseAdjustedXgAway)} (15.6%)
-    * 1 - 1 (13.4%)
-    * ${Math.floor(baseAdjustedXgHome)} - ${Math.ceil(baseAdjustedXgAway)} (10.8%)
+* **Market Status:** Live Bookie Lines vs STRATOS Target Calculations | Calculated Edge Delta: ${calculatedEdgePctVal.toFixed(1)}%
 * **Betting Market Verdict:** ${verdictResult}
-* **Target Execution:** ${hasEdge ? `Selection: ${targetMarket} with a mathematical calculated edge of +${calculatedEdgePctVal.toFixed(1)}%` : "N/A - System Recommends Passing due to inadequate value profile"}`
+* **Live Target Execution:** ${hasEdge ? `Selection: ${targetMarket} with a mathematical calculated edge of +${calculatedEdgePctVal.toFixed(1)}%` : "N/A - System Recommends Passing due to alignment with current market pricing"}`
   };
 }
 
@@ -788,23 +895,66 @@ app.get("/api/fixtures", (req, res) => {
 
 // Prediction Route with API fallback
 app.post("/api/predict", async (req, res) => {
-  const { homeTeam, awayTeam, venue, kickoffTime, altitudeCampHome, altitudeCampAway, pitchMoisture, matchTemperature, simulationMode, isManualInput } = req.body;
+  const { 
+    homeTeam, 
+    awayTeam, 
+    venue, 
+    kickoffTime, 
+    altitudeCampHome, 
+    altitudeCampAway, 
+    pitchMoisture, 
+    matchTemperature, 
+    simulationMode, 
+    isManualInput,
+    current_minute,
+    current_score,
+    match_context,
+    currentMinute,
+    currentScore,
+    matchContext
+  } = req.body;
+
   if (!homeTeam || !awayTeam) {
     return res.status(400).json({ error: "homeTeam and awayTeam parameters are required" });
   }
+
+  const activeMinute = current_minute !== undefined ? current_minute : currentMinute;
+  const activeScore = current_score || currentScore;
+  const activeContext = match_context || matchContext;
 
   const activeMode = simulationMode === "tier1" ? "tier1" : "tier2";
 
   // Gracefully handle missing API key or use of offline dummy key
   if (!API_KEY || API_KEY === "MY_GEMINI_API_KEY") {
     console.log(`GEMINI_API_KEY is not set. Serving highly-structured 9-Phase mock result for: ${homeTeam} vs ${awayTeam} with mode: ${activeMode}`);
-    const prediction = getMockPrediction(homeTeam, awayTeam, venue, kickoffTime, altitudeCampHome, altitudeCampAway, pitchMoisture, matchTemperature, activeMode);
+    const prediction = getMockPrediction(
+      homeTeam, 
+      awayTeam, 
+      venue, 
+      kickoffTime, 
+      altitudeCampHome, 
+      altitudeCampAway, 
+      pitchMoisture, 
+      matchTemperature, 
+      activeMode,
+      activeMinute,
+      activeScore,
+      activeContext
+    );
     return res.json({ prediction: { ...prediction, simulationMode: activeMode }, isMock: true });
   }
 
   try {
     const ai = getGeminiClient();
     console.log(`Calling Gemini API (Stratos v2 Predictive Engine 9-Phase Core with ${activeMode}) for: ${homeTeam} vs ${awayTeam}`);
+
+    const livePromptSnippet = (activeMinute !== undefined && activeScore !== undefined) ? `
+⚠️ CRITICAL IN-PLAY LIVE UPDATE CONTEXT ACTIVE:
+- Current Minute: ${activeMinute}'
+- Current Score: ${activeScore}
+- Match Context Feedback: "${activeContext}"
+
+Evaluate the match from this live situation, calculating the probabilities specifically for the REMAINING minutes of the match based on the current score and tactical state!` : "";
 
     const promptText = `
 You are STRATOS v2, an enterprise-grade Football Intelligence System, Cognitive Interpretation, Tactical Narrative, and Risk Layer purpose-built to translate pre-calculated sports science, weather metrics, and quantitative betting payloads into elite, human-readable betting intelligence.
@@ -819,6 +969,7 @@ Away Team Altitude Training Prep (>14 days): ${altitudeCampAway ? "YES" : "NO"}
 Pitch Moisture State: "${pitchMoisture || "Standard"}"
 Match Day Temperature Calibration: ${matchTemperature !== undefined ? matchTemperature : 22}°C (approx ${matchTemperature !== undefined ? Math.round(matchTemperature * 1.8 + 32) : 72}°F)
 SELECTED COMPUTATIONAL PASS ENGINE MODE: ${activeMode === 'tier1' ? 'Tier 1 - Browse Mode (fast-pass 500-iteration macro-assessment)' : 'Tier 2 - Deep Analysis Mode (comprehensive 10,000-pass Monte Carlo simulation)'}
+${livePromptSnippet}
 
 You MUST run a search to extract current, real-world lineup news, team injury reports, tactical setups, travel schedules, current referee info, and actual pitch/weather settings for both teams.
 
@@ -887,39 +1038,36 @@ Thoroughly populate the "matchdayContext" properties with exact, calculated figu
 
 ---
 
-# ✍️ SECTION V: COGNITIVE INTERPRETATION NARRATIVE GENERATION
+# ✍️ SECTION V: COGNITIVE INTERPRETATION NARRATIVE GENERATION (Phase 14 Tactical Interpreter)
 You MUST write a comprehensive Markdown document in the "cognitiveNarrative" field. The document MUST follow this Markdown layout EXACTLY, replacing bracketed variables with exact computed or database values:
 
-### 1. STRATOS MATCH STRESS & CONTEXT INTEGRITY
-* **Fixture Blueprint:** [Home Team] vs [Away Team] | [Competition Context] | Gender Slate: [Gender]
-* **Data Quality Index:** [data_quality_score]/100 (List if Lineups are Confirmed vs Projected)
-* **Environmental Stress Index (ESI):** [LOW / MODERATE / SEVERE based on Temperature, Humidity, and Altitude parameters]
-* **Logistical Friction:** Rest Discrepancy: [days_rest_home] Days vs [days_rest_away] Days | Market Drift: [odds_drift_pct]%
+### 1. STRATOS SYSTEM DATA INTEGRITY AUDIT
+* **Active Fixture Profile:** [home_team] vs [away_team] | Mode: [competition_mode] | Gender Slate: [gender]
+* **Telemetry Quality Index:** [data_quality_score]/100 (Cache Age: [in_play_ticker_state.cache_age_seconds]s | Live Trigger: [in_play_ticker_state.live_event_trigger])
+* **Live In-Play Board:** [in_play_ticker_state.current_score] (Minute: [in_play_ticker_state.current_minute]' | Halftime Score: [in_play_ticker_state.half_time_score])
 
-### 2. SQUAD COHESION & RESILIENCE PROFILES
-* **Home Squad Chemistry:** Continuity Score: [starting_xi_continuity_home]/100 | Manager Tenure: [coach_tenure_months_home] Months
-* **Away Squad Chemistry:** Continuity Score: [starting_xi_continuity_away]/100 | Manager Tenure: [coach_tenure_months_away] Months
-* **Tactical Cohesion Synthesis:** [Briefly explain how the gap in continuity and rest days impacts the early structural stability of the game]
+### 2. HISTORICAL REGIONAL FRICTION & STYLISTIC ANALYSIS
+* **Federation Structural Profiles:** [home_federation] vs [away_federation] | Matchup Clash Score: [historical_regional_friction.h2h_stylistic_clash_score]/100
+* **Style Compatibility Narrative:** [Synthesize how regional playing styles clash, citing the exact text provided in historical_matchup_bias]
 
-### 3. THE EXPLAINABILITY LAYER (Grounded Metric Drivers)
+### 3. LIVE CLIMATE DEGRADATION LOGS (Minutes 60-90 Matrix)
+* **Match Venue Climate Matrix:** Venue: [venue] | Heat Stress Index: [environmental_inputs.calculated_heat_stress_index]
+* **Late-Game Stamina Drop-Off:** [Detail how the climate variables interact with heat_adaptation_index_home and heat_adaptation_index_away to create late game score line variance, matching the trend where unacclimated teams drop off in the second half]
+
+### 4. THE EXPLAINABILITY LAYER (Grounded Metric Drivers)
 * **Positive Engine Drivers:**
-    1. [Driver 1 - Explicitly name the payload value and add its source bracket]
-    2. [Driver 2 - Explicitly name the payload value and add its source bracket]
+    1. [Driver 1 - Explicit metric name with source bracket path, e.g. (Home Team Strength [phase1EloStrength.homeElo])]
+    2. [Driver 2 - Explicit metric name with source bracket path, e.g. (Starting XI Chemistry [matchdayContext.starting_xi_continuity_home])]
 * **Negative Engine Factors:**
-    1. [Factor 1 - Explicitly name the liability metric and add its source bracket]
-    2. [Factor 2 - Explicitly name the liability metric and add its source bracket]
+    1. [Factor 1 - Explicit metric name with source bracket path, e.g. (Guest Rest Discrepancy [matchdayContext.days_rest_away])]
+    2. [Factor 2 - Explicit metric name with source bracket path, e.g. (Away Climate Decay [phase6ClimateAdaptation.climateDecayFactorAway])]
 
-### 4. REFEREE & IN-MATCH CRISIS PROFILE
-* **Official Match Referee:** [Referee Name]
-* **Disciplinary Profile:** Card Average: [cards_per_match] | Penalty Rate: [penalty_frequency_pct]%
-* **Tactical Impact Narrative:** [Synthesize how this referee's strictness profile interacts with the environmental stress metrics during high-fatigue match blocks (minutes 60-90)]
-
-### 5. FINAL SIMULATION MATRIX & VALUE VERDICT
-* **STRATOS Probabilities:** Home Win [Calculated %] | Draw [Calculated %] | Away Win [Calculated %]
+### 5. FINAL IN-PLAY SIMULATION PROJECTIONS & VALUE OVERLAY
+* **STRATOS Probabilities:** Home Win [calculated_home_win_pct]% | Draw [calculated_draw_pct]% | Away Win [calculated_away_win_pct]%
 * **Prediction Confidence Rating:** [stratos_confidence_score]%
-* **Top 3 Poisson Distributions:** [List scorelines provided]
+* **Market Status:** Live Bookie Lines vs STRATOS Target Calculations | Calculated Edge Delta: [market_value_overlay.calculated_edge_pct]%
 * **Betting Market Verdict:** [Output 🟢 VALUE OPPORTUNITY or ⚠️ NO EDGE DETECTED - SKIP MATCH]
-* **Target Execution:** [If value opportunity exists, specify target selection, bookie odds, and exact mathematical edge %. If no edge exists, write 'N/A - System Recommends Passing due to inadequate value profile']
+* **Live Target Execution:** [If value exists, state selection target and edge margin. If no edge, state 'N/A - System Recommends Passing due to alignment with current market pricing']
 
 Return a perfectly formatted raw JSON object conforming EXACTLY to the specified soccerPredictionSchema. Do not wrap the JSON output inside any markdown code blocks. Returns raw JSON only.
 `;
@@ -941,7 +1089,20 @@ Return a perfectly formatted raw JSON object conforming EXACTLY to the specified
   } catch (error: any) {
     console.error("Gemini API prediction error:", error);
     // Graceful fallback to guarantee user gets a projection instead of raw 500
-    const prediction = getMockPrediction(homeTeam, awayTeam, venue, kickoffTime, altitudeCampHome, altitudeCampAway, pitchMoisture, matchTemperature);
+    const prediction = getMockPrediction(
+      homeTeam, 
+      awayTeam, 
+      venue, 
+      kickoffTime, 
+      altitudeCampHome, 
+      altitudeCampAway, 
+      pitchMoisture, 
+      matchTemperature,
+      activeMode,
+      activeMinute,
+      activeScore,
+      activeContext
+    );
     return res.json({ prediction, isMock: true, apiError: error.message });
   }
 });
