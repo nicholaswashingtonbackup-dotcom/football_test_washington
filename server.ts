@@ -345,7 +345,7 @@ const soccerPredictionSchema = {
     "phase3SquadAvailability",
     "phase4FormationStability",
     "phase5TravelStress",
-    "phase6ClimateAdjustment",
+    "phase6ClimateAdaptation",
     "phase7StadiumIntelligence",
     "phase8TournamentPsychology",
     "phase9MonteCarlo",
